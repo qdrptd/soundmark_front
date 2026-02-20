@@ -1,24 +1,36 @@
 package com.example.soundmark.ui.views.home
 
-import androidx.compose.foundation.layout.fillMaxSize
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import com.example.soundmark.data.model.ClusterMark
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(viewModel: HomeViewModel) {
-    val mapPins by viewModel.mapPins.collectAsState()
+    val clusteredMarks by viewModel.clusteredMarks.collectAsState()
+    val selectedCluster by viewModel.selectedCluster.collectAsState()
+    val context = LocalContext.current
 
     // 기본 설정
-    val startLocation = LatLng(37.5665, 126.9780)
+    val sheetState = rememberModalBottomSheetState()
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(startLocation, 15f)
+        position = CameraPosition.fromLatLngZoom(LatLng(37.5665, 126.9780), 15f)
     }
-
     val uiSettings = MapUiSettings(zoomControlsEnabled = true)
     val properties = MapProperties(isMyLocationEnabled = false)
 
@@ -29,18 +41,57 @@ fun HomeScreen(viewModel: HomeViewModel) {
         properties = properties,
         uiSettings = uiSettings
     ) {
-        mapPins.forEach { pin ->
+        clusteredMarks.forEach { cluster ->
             Marker(
-                state = rememberMarkerState(position = LatLng(pin.latitude, pin.longitude)),
-                title = pin.track.title,
-                snippet = pin.track.artist,
-                // PRD에 따라 활성화 여부에 투명도 차이를 줄 수 있습니다.
-                alpha = if (pin.isActive) 1.0f else 0.5f,
+                state = rememberMarkerState(position = cluster.position),
+                icon = createClusterIcon(cluster.count), // 숫자가 그려진 커스텀 아이콘
                 onClick = {
-                    // TODO: 상세 정보 BottomSheet 띄우기 로직
-                    false
+                    viewModel.onClusterClick(cluster)
+                    true
                 }
             )
         }
     }
+}
+
+@Composable
+fun ClusterDetailContent(cluster: ClusterMark) {
+    Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
+        Text("이 구역의 사운드 마크 (${cluster.count}개)", style = MaterialTheme.typography.headlineSmall)
+        Spacer(modifier = Modifier.height(16.dp))
+        cluster.pins.forEach { pin ->
+            ListItem(
+                headlineContent = { Text(pin.track.title) },
+                supportingContent = { Text(pin.track.artist) },
+                leadingContent = { /* 앨범 커버 이미지 로드 로직 */ }
+            )
+        }
+    }
+}
+
+// 숫자가 적힌 동그란 비트맵 아이콘 생성 함수
+fun createClusterIcon(count: Int): BitmapDescriptor {
+    val size = 100
+    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+
+    val paint = Paint().apply {
+        color = Color.parseColor("#6200EE") // 앱의 메인 컬러
+        isAntiAlias = true
+    }
+
+    // 배경 동그라미
+    canvas.drawCircle(size / 2f, size / 2f, size / 2f, paint)
+
+    // 숫자 텍스트
+    paint.apply {
+        color = Color.WHITE
+        textSize = 40f
+        textAlign = Paint.Align.CENTER
+    }
+    val xPos = canvas.width / 2f
+    val yPos = (canvas.height / 2f) - ((paint.descent() + paint.ascent()) / 2f)
+    canvas.drawText(count.toString(), xPos, yPos, paint)
+
+    return BitmapDescriptorFactory.fromBitmap(bitmap)
 }
