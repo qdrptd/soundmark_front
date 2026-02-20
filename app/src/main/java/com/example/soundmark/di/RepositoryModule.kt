@@ -1,7 +1,7 @@
 package com.example.soundmark.di
 
-import com.example.soundmark.data.repository.UserRepository
-import com.example.soundmark.data.repository.UserRepositoryImpl
+import com.example.soundmark.data.repository.user.UserRepository
+import com.example.soundmark.data.repository.user.UserRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
