@@ -25,6 +25,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.soundmark.ui.theme.SoundMarkTheme
+import dagger.hilt.android.AndroidEntryPoint
 import com.example.soundmark.ui.views.home.HomeScreen
 import com.example.soundmark.ui.views.onboard.LoginState
 import com.example.soundmark.ui.views.onboard.OnboardScreen
@@ -32,6 +33,7 @@ import com.example.soundmark.ui.views.onboard.OnboardViewModel
 import com.example.soundmark.ui.views.profile.ProfileScreen
 import com.example.soundmark.ui.views.songlist.SongListScreen
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val onboardViewModel: OnboardViewModel by viewModels()
 
