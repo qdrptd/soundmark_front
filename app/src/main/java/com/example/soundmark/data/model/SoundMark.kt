@@ -1,16 +1,27 @@
 package com.example.soundmark.data.model
 
-import com.google.android.gms.maps.model.LatLng
-
 data class SoundMark(
-    val id: String,
-    val title: String,
-    val artist: String,
-    val albumCoverUrl: String,
-    val location: LatLng,
-    val recommendationMessage: String,
-    val spotifyLink: String,
-    val userId: String,
-    val likes: Int = 0,
-    val isActivated: Boolean = false
-)
+    val id: Long,
+    val track: Track,
+    val author: User,
+    val location: GeoLocation,
+    val message: String?,
+    val imageUrls: List<String>,
+    val reactions: List<Reaction>,
+    val createdAt: Long,
+    val isActive: Boolean
+) {
+    companion object {
+        val Default = SoundMark(
+            id = 1L,
+            track = Track.Default,
+            author = User.Default,
+            location = GeoLocation.Default,
+            message = "SoundMark message",
+            imageUrls = emptyList(),
+            reactions = emptyList(),
+            createdAt = System.currentTimeMillis(),
+            isActive = true
+        )
+    }
+}
