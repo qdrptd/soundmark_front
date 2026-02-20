@@ -1,5 +1,6 @@
 package com.example.soundmark.data.repository.profile
 
+import com.example.soundmark.data.mock.MockDataSource
 import com.example.soundmark.data.model.GeoLocation
 import com.example.soundmark.data.model.MapPin
 import com.example.soundmark.data.model.Profile
@@ -13,22 +14,21 @@ class MarkRepositoryImpl @Inject constructor(
     private val apiService: ApiService,
 ) : MarkRepository {
     override suspend fun getNearbyMarks(geoLocation: GeoLocation): Result<List<MapPin>> {
-        try{
-            return Result.success(
-                listOf(MapPin.Default, MapPin.Default)
-            )
+        return try{
+            // TODO: 서버 연결
+            Result.success(MockDataSource.getNearbyPins())
         } catch (e: Exception){
-            return Result.failure(e)
+            Result.failure(e)
         }
     }
 
     override suspend fun getSoundMarkById(markId: String): Result<SoundMark> {
-        try{
-            return Result.success(
+        return try{
+            Result.success(
                 SoundMark.Default
             )
         } catch (e: Exception){
-            return Result.failure(e)
+            Result.failure(e)
         }
     }
 

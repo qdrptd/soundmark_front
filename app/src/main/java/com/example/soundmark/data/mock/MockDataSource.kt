@@ -1,0 +1,71 @@
+package com.example.soundmark.data.mock
+
+import com.example.soundmark.data.model.*
+
+object MockDataSource {
+
+    // 1. 공통으로 쓸 가짜 트랙들
+    val mockTracks = listOf(
+        Track(
+            title = "Hype Boy",
+            artist = "NewJeans",
+            albumCoverUrl = "https://example.com/hypeboy.jpg",
+            spotifyUrl = "spotify:track:1",
+            previewUrl = null
+        ),
+        Track(
+            title = "Ditto",
+            artist = "NewJeans",
+            albumCoverUrl = "https://example.com/ditto.jpg",
+            spotifyUrl = "spotify:track:2",
+            previewUrl = null
+        ),
+        Track(
+            title = "Seven",
+            artist = "Jungkook",
+            albumCoverUrl = "https://example.com/seven.jpg",
+            spotifyUrl = "spotify:track:3",
+            previewUrl = null
+        )
+    )
+
+    // 2. 지도에 뿌릴 핀 리스트
+    fun getNearbyPins(): List<MapPin> = listOf(
+        MapPin(
+            soundmarkId = "pin_1",
+            track = mockTracks[0],
+            latitude = 37.5665,
+            longitude = 126.9780,
+            isActive = true
+        ),
+        MapPin(
+            soundmarkId = "pin_2",
+            track = mockTracks[1],
+            latitude = 37.5675,
+            longitude = 126.9800,
+            isActive = true
+        ),
+        MapPin(
+            soundmarkId = "pin_3",
+            track = mockTracks[2],
+            latitude = 37.5650,
+            longitude = 126.9750,
+            isActive = false // 멀리 있는 경우 가정
+        )
+    )
+
+    // 3. 상세 화면용 SoundMark 정보
+    fun getSoundMarkDetail(id: String): SoundMark {
+        return SoundMark(
+            id = id.toLongOrNull() ?: 1L,
+            track = mockTracks[0],
+            author = User.Default.copy(name = "음악대장"),
+            location = GeoLocation(37.5665, 126.9780, "엘리스랩 성수"),
+            message = "여기서 이 노래 들으면 감성이 폭발합니다.. 꼭 들어보세요!",
+            imageUrls = listOf("https://example.com/photo1.jpg"),
+            reactions = emptyList(),
+            createdAt = System.currentTimeMillis(),
+            isActive = true
+        )
+    }
+}
