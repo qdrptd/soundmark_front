@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -23,9 +24,8 @@ import com.google.maps.android.compose.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(viewModel: HomeViewModel) {
-    val clusteredMarks by viewModel.clusteredMarks.collectAsState()
+    val clusters by viewModel.clusteredMarks.collectAsState()
     val selectedCluster by viewModel.selectedCluster.collectAsState()
-    val context = LocalContext.current
 
     // 기본 설정
     val sheetState = rememberModalBottomSheetState()
@@ -49,15 +49,18 @@ fun HomeScreen(viewModel: HomeViewModel) {
             properties = properties,
             uiSettings = uiSettings
         ) {
-            clusteredMarks.forEach { cluster ->
-                Marker(
-                    state = rememberMarkerState(position = cluster.position),
-                    icon = createClusterIcon(cluster.count), // 숫자가 그려진 커스텀 아이콘
-                    onClick = {
-                        viewModel.onClusterClick(cluster)
-                        true
-                    }
-                )
+            clusters.forEach { cluster ->
+                key("${cluster.id}_${cluster.isActive}") {
+                    Marker(
+                        state = rememberMarkerState(position = cluster.position),
+                        // 여기서 다시 숫자가 들어간 아이콘을 만듭니다!
+                        icon = createClusterIcon(cluster.count, cluster.isActive),
+                        onClick = {
+                            viewModel.onClusterClick(cluster)
+                            true
+                        }
+                    )
+                }
             }
         }
 
@@ -89,13 +92,13 @@ fun ClusterDetailContent(cluster: ClusterMark) {
 }
 
 // 숫자가 적힌 동그란 비트맵 아이콘 생성 함수
-fun createClusterIcon(count: Int): BitmapDescriptor {
+fun createClusterIcon(count: Int, isActive: Boolean): BitmapDescriptor {
     val size = 100
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
 
     val paint = Paint().apply {
-        color = Color.parseColor("#6200EE") // 앱의 메인 컬러
+        color = if (isActive) Color.parseColor("#6200EE") else Color.parseColor("#9E9E9E")
         isAntiAlias = true
     }
 
