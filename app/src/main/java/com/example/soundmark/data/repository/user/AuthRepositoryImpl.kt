@@ -1,21 +1,27 @@
 package com.example.soundmark.data.repository.user
 
 import android.content.Context
+import android.util.Log
 import com.example.soundmark.data.network.ApiService
+import com.example.soundmark.data.network.SpotifyAuthApi
+import com.example.soundmark.data.network.SpotifyAuthDataSource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import androidx.core.content.edit
 
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
-    private val apiService: ApiService,
+    private val spotifyAuthApi: SpotifyAuthApi,
+    private val api: ApiService,
+    private val spotifyDataSource: SpotifyAuthDataSource,
     @ApplicationContext private val context: Context
 ) : AuthRepository {
 
     private val prefs = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
 
     override fun saveAccessToken(token: String) {
-        prefs.edit().putString("access_token", token).apply()
+        prefs.edit { putString("access_token", token) }
     }
 
     override fun getAccessToken(): String? {
@@ -23,6 +29,47 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override fun clearSession() {
-        prefs.edit().remove("access_token").apply()
+        prefs.edit { remove("access_token") }
+    }
+
+    override suspend fun handleSpotifyLogin(
+        code: String,
+        clientId: String,
+        redirectUri: String,
+    ): Result<String> = runCatching {
+
+
+        Log.d("code", code)
+        val verifier = getCodeVerifier()
+        Log.d("verifier", verifier.toString())
+        if (verifier == null) throw Exception("verifier is null")
+        // 1️⃣ code → access token
+        val tokenResponse = spotifyAuthApi.exchangeToken(
+            code = code,
+            redirectUri = redirectUri,
+            clientId = clientId,
+            codeVerifier = verifier
+        )
+
+        Log.d("accessToken", tokenResponse.accessToken)
+
+        val spotifyAccessToken = tokenResponse.accessToken
+
+//        // 2️⃣ 우리 서버 로그인 (신원 검증)
+//        val jwt = api.loginWithSpotify("Bearer $spotifyAccessToken")
+//
+//        // 3️⃣ JWT 저장
+//        saveAccessToken(jwt.accessToken)
+//
+//        jwt.accessToken
+        return Result.success("accessToken")
+    }
+
+    override fun saveCodeVerifier(verifier: String){
+        prefs.edit().putString("verifier", verifier).apply()
+    }
+
+    override fun getCodeVerifier(): String?{
+        return prefs.getString("verifier", null)
     }
 }

@@ -1,6 +1,7 @@
 package com.example.soundmark.di
 
 import com.example.soundmark.data.network.ApiService
+import com.example.soundmark.data.network.SpotifyAuthApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -10,46 +11,102 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
+import javax.inject.Named
 import javax.inject.Singleton
-
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "https://api.spotify.com/v1/"
+    private const val SPOTIFY_ACCOUNTS_BASE_URL = "https://accounts.spotify.com/"
+    private const val SPOTIFY_API_BASE_URL = "https://api.spotify.com/"
+    private const val BACKEND_BASE_URL = "https://your.backend.com/" // 👉 TODO 변경
+
+    // =========================
+    // OkHttp
+    // =========================
 
     @Provides
     @Singleton
-    fun provideLoggingInterceptor(): HttpLoggingInterceptor {
-        return HttpLoggingInterceptor().apply {
+    fun provideLoggingInterceptor(): HttpLoggingInterceptor =
+        HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
-    }
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient {
-        return OkHttpClient.Builder()
+    fun provideOkHttpClient(
+        loggingInterceptor: HttpLoggingInterceptor
+    ): OkHttpClient =
+        OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
             .build()
-    }
+
+    // =========================
+    // Retrofit — Spotify TOKEN (accounts)
+    // =========================
 
     @Provides
     @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(okHttpClient)
+    @Named("spotifyAccounts")
+    fun provideSpotifyAccountsRetrofit(
+        client: OkHttpClient
+    ): Retrofit =
+        Retrofit.Builder()
+            .baseUrl(SPOTIFY_ACCOUNTS_BASE_URL)
+            .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-    }
+
+    // =========================
+    // Retrofit — Spotify API (v1)
+    // =========================
 
     @Provides
     @Singleton
-    fun provideApiService(retrofit: Retrofit): ApiService {
-        return retrofit.create(ApiService::class.java)
-    }
+    @Named("spotifyApi")
+    fun provideSpotifyApiRetrofit(
+        client: OkHttpClient
+    ): Retrofit =
+        Retrofit.Builder()
+            .baseUrl(SPOTIFY_API_BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+    // =========================
+    // Retrofit — 우리 서버
+    // =========================
+
+    @Provides
+    @Singleton
+    @Named("backend")
+    fun provideBackendRetrofit(
+        client: OkHttpClient
+    ): Retrofit =
+        Retrofit.Builder()
+            .baseUrl(BACKEND_BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+    // =========================
+    // API Interfaces
+    // =========================
+
+    @Provides
+    @Singleton
+    fun provideSpotifyApi(
+        @Named("spotifyAccounts") retrofit: Retrofit
+    ): SpotifyAuthApi =
+        retrofit.create(SpotifyAuthApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideApiService(
+        @Named("backend") retrofit: Retrofit
+    ): ApiService =
+        retrofit.create(ApiService::class.java)
 }

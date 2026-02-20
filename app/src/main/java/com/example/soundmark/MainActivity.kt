@@ -30,7 +30,7 @@ import com.example.soundmark.ui.views.home.HomeScreen
 import com.example.soundmark.ui.views.onboard.LoginState
 import com.example.soundmark.ui.views.onboard.OnboardScreen
 import com.example.soundmark.ui.views.onboard.OnboardViewModel
-import com.example.soundmark.ui.views.profile.ProfileScreen
+import com.example.soundmark.ui.views.profile.ProfileRoute
 import com.example.soundmark.ui.views.songlist.SongListScreen
 
 @AndroidEntryPoint
@@ -104,7 +104,7 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = NavigationDestination.HOME.name, //NavigationDestination.ONBOARD.name,
+            startDestination = NavigationDestination.ONBOARD.name,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(NavigationDestination.ONBOARD.name) {
@@ -117,7 +117,7 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
                 SongListScreen()
             }
             composable(NavigationDestination.PROFILE.name) {
-                ProfileScreen()
+                ProfileRoute()
             }
         }
     }
