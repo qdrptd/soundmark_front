@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -24,11 +25,18 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _rawPins = MutableStateFlow<List<MapPin>>(emptyList())
+    private val _currentZoom = MutableStateFlow(15f)
 
     // UI는 클러스터링된 마크 리스트를 관찰
-    val clusteredMarks: StateFlow<List<ClusterMark>> = _rawPins
-        .map { pins -> MarkerClusteringUtil.clusterPins(pins) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    // pins와 zoom이 바뀔 때마다 클러스터링을 다시 계산
+    val clusteredMarks: StateFlow<List<ClusterMark>> = combine(_rawPins, _currentZoom) { pins, zoom ->
+        MarkerClusteringUtil.clusterPins(pins, zoom)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // 줌 레벨 업데이트 함수
+    fun onZoomChanged(newZoom: Float) {
+        _currentZoom.value = newZoom
+    }
 
     // 지도에 표시할 마크 리스트 상태
     private val _selectedCluster = MutableStateFlow<ClusterMark?>(null)

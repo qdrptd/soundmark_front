@@ -11,14 +11,16 @@ object MarkerClusteringUtil {
     /**
      * 특정 거리(radius) 내의 마크들을 하나로 뭉칩니다.
      * @param pins 원본 마크 리스트
-     * @param clusterThresholdDegrees 뭉칠 거리 기준 (경위도 도 단위)
+     * @param zoom 지도의 현재 줌 레벨
      */
     fun clusterPins(
         pins: List<MapPin>,
-        clusterThresholdDegrees: Double = 0.002 // 약 200m 정도의 오차 범위
+        zoom: Float
     ): List<ClusterMark> {
         val clusters = mutableListOf<ClusterMark>()
         val visited = mutableSetOf<String>()
+
+        val clusterThresholdDegrees = 0.002 * 2.0.pow((15 - zoom).toDouble().coerceAtLeast(0.0))
 
         for (pin in pins) {
             if (pin.soundmarkId in visited) continue

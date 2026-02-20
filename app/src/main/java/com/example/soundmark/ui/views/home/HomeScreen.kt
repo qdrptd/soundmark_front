@@ -7,6 +7,7 @@ import android.graphics.Paint
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -34,32 +35,40 @@ fun HomeScreen(viewModel: HomeViewModel) {
     val uiSettings = MapUiSettings(zoomControlsEnabled = true)
     val properties = MapProperties(isMyLocationEnabled = false)
 
-    // 5. GoogleMap 컴포저블 배치
-    GoogleMap(
-        modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState,
-        properties = properties,
-        uiSettings = uiSettings
-    ) {
-        clusteredMarks.forEach { cluster ->
-            Marker(
-                state = rememberMarkerState(position = cluster.position),
-                icon = createClusterIcon(cluster.count), // 숫자가 그려진 커스텀 아이콘
-                onClick = {
-                    viewModel.onClusterClick(cluster)
-                    true
-                }
-            )
+    // 카메라의 줌 레벨이 변하는 것을 관찰하여 ViewModel에 전달
+    LaunchedEffect(cameraPositionState.isMoving) {
+        if (!cameraPositionState.isMoving) {
+            viewModel.onZoomChanged(cameraPositionState.position.zoom)
         }
     }
 
-    // ClusterMark를 눌렀을 때 나오는 BottomoSheet
-    if (selectedCluster != null) {
-        ModalBottomSheet(
-            onDismissRequest = { viewModel.dismissBottomSheet() },
-            sheetState = sheetState
+    Scaffold { padding ->
+        GoogleMap(
+            modifier = Modifier.padding(padding).fillMaxSize(),
+            cameraPositionState = cameraPositionState,
+            properties = properties,
+            uiSettings = uiSettings
         ) {
-            ClusterDetailContent(selectedCluster!!)
+            clusteredMarks.forEach { cluster ->
+                Marker(
+                    state = rememberMarkerState(position = cluster.position),
+                    icon = createClusterIcon(cluster.count), // 숫자가 그려진 커스텀 아이콘
+                    onClick = {
+                        viewModel.onClusterClick(cluster)
+                        true
+                    }
+                )
+            }
+        }
+
+        // ClusterMark를 눌렀을 때 나오는 BottomoSheet
+        if (selectedCluster != null) {
+            ModalBottomSheet(
+                onDismissRequest = { viewModel.dismissBottomSheet() },
+                sheetState = sheetState
+            ) {
+                ClusterDetailContent(selectedCluster!!)
+            }
         }
     }
 }
