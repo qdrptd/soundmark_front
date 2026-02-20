@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.lifecycle.ViewModel
-import com.example.soundmark.data.repository.user.UserRepository
+import com.example.soundmark.data.repository.user.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,14 +12,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OnboardViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val authRepository: AuthRepository
 ) : ViewModel() {
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
     val loginState = _loginState.asStateFlow()
 
     init {
         // 이미 저장된 토큰이 있는지 확인하여 자동 로그인 상태 설정
-        userRepository.getAccessToken()?.let {
+        authRepository.getAccessToken()?.let {
             _loginState.value = LoginState.Success(it)
         }
     }
@@ -52,7 +52,7 @@ class OnboardViewModel @Inject constructor(
                 ?.substringAfter("access_token=")
 
             if (accessToken != null) {
-                userRepository.saveAccessToken(accessToken)
+                authRepository.saveAccessToken(accessToken)
                 _loginState.value = LoginState.Success(accessToken)
             } else {
                 val error = uri.getQueryParameter("error") ?: "Unknown error"

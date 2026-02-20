@@ -1,7 +1,11 @@
 package com.example.soundmark.di
 
-import com.example.soundmark.data.repository.user.UserRepository
-import com.example.soundmark.data.repository.user.UserRepositoryImpl
+import com.example.soundmark.data.repository.profile.MarkRepository
+import com.example.soundmark.data.repository.profile.MarkRepositoryImpl
+import com.example.soundmark.data.repository.profile.UserRepository
+import com.example.soundmark.data.repository.profile.UserRepositoryImpl
+import com.example.soundmark.data.repository.user.AuthRepository
+import com.example.soundmark.data.repository.user.AuthRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -17,4 +21,17 @@ abstract class RepositoryModule {
     abstract fun bindUserRepository(
         userRepositoryImpl: UserRepositoryImpl
     ): UserRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(
+        authRepositoryImpl: AuthRepositoryImpl
+    ): AuthRepository
+
+    @Binds
+
+    @Singleton
+    abstract fun bindMarkRepository(
+        markRepositoryImpl: MarkRepositoryImpl
+    ): MarkRepository
 }
