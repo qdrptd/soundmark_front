@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -27,6 +28,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.soundmark.ui.theme.SoundMarkTheme
 import dagger.hilt.android.AndroidEntryPoint
 import com.example.soundmark.ui.views.home.HomeScreen
+import com.example.soundmark.ui.views.home.HomeViewModel
 import com.example.soundmark.ui.views.onboard.LoginState
 import com.example.soundmark.ui.views.onboard.OnboardScreen
 import com.example.soundmark.ui.views.onboard.OnboardViewModel
@@ -111,7 +113,8 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
                 OnboardScreen(viewModel = onboardViewModel)
             }
             composable(NavigationDestination.HOME.name) {
-                HomeScreen()
+                val homeViewModel: HomeViewModel = hiltViewModel()
+                HomeScreen(viewModel = homeViewModel)
             }
             composable(NavigationDestination.SONG_LIST.name) {
                 SongListScreen()

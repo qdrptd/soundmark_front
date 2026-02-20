@@ -1,46 +1,116 @@
 package com.example.soundmark.ui.views.home
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import com.example.soundmark.data.model.ClusterMark
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.*
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeScreen(viewModel: HomeViewModel) {
+    val clusteredMarks by viewModel.clusteredMarks.collectAsState()
+    val selectedCluster by viewModel.selectedCluster.collectAsState()
+    val context = LocalContext.current
+
+    // 기본 설정
+    val sheetState = rememberModalBottomSheetState()
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(LatLng(37.5665, 126.9780), 15f)
+    }
+    val uiSettings = MapUiSettings(zoomControlsEnabled = true)
+    val properties = MapProperties(isMyLocationEnabled = false)
+
+    // 카메라의 줌 레벨이 변하는 것을 관찰하여 ViewModel에 전달
+    LaunchedEffect(cameraPositionState.isMoving) {
+        if (!cameraPositionState.isMoving) {
+            viewModel.onZoomChanged(cameraPositionState.position.zoom)
+        }
+    }
+
+    Scaffold { padding ->
+        GoogleMap(
+            modifier = Modifier.padding(padding).fillMaxSize(),
+            cameraPositionState = cameraPositionState,
+            properties = properties,
+            uiSettings = uiSettings
+        ) {
+            clusteredMarks.forEach { cluster ->
+                Marker(
+                    state = rememberMarkerState(position = cluster.position),
+                    icon = createClusterIcon(cluster.count), // 숫자가 그려진 커스텀 아이콘
+                    onClick = {
+                        viewModel.onClusterClick(cluster)
+                        true
+                    }
+                )
+            }
+        }
+
+        // ClusterMark를 눌렀을 때 나오는 BottomoSheet
+        if (selectedCluster != null) {
+            ModalBottomSheet(
+                onDismissRequest = { viewModel.dismissBottomSheet() },
+                sheetState = sheetState
+            ) {
+                ClusterDetailContent(selectedCluster!!)
+            }
+        }
+    }
+}
 
 @Composable
-fun HomeScreen() {
-    // 1. 지도의 초기 위치 설정 (예: 서울 시청)
-    val startLocation = LatLng(37.5665, 126.9780)
+fun ClusterDetailContent(cluster: ClusterMark) {
+    Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
+        Text("이 구역의 사운드 마크 (${cluster.count}개)", style = MaterialTheme.typography.headlineSmall)
+        Spacer(modifier = Modifier.height(16.dp))
+        cluster.pins.forEach { pin ->
+            ListItem(
+                headlineContent = { Text(pin.track.title) },
+                supportingContent = { Text(pin.track.artist) },
+                leadingContent = { /* 앨범 커버 이미지 로드 로직 */ }
+            )
+        }
+    }
+}
 
-    // 2. 카메라 상태 기억 (줌 레벨 15)
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(startLocation, 15f)
+// 숫자가 적힌 동그란 비트맵 아이콘 생성 함수
+fun createClusterIcon(count: Int): BitmapDescriptor {
+    val size = 100
+    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+
+    val paint = Paint().apply {
+        color = Color.parseColor("#6200EE") // 앱의 메인 컬러
+        isAntiAlias = true
     }
 
-    // 3. 지도 UI 설정 (줌 버튼 표시 등)
-    val uiSettings = MapUiSettings(
-        zoomControlsEnabled = true,
-        myLocationButtonEnabled = false // 실제 권한 로직 전까지는 꺼둡니다.
-    )
+    // 배경 동그라미
+    canvas.drawCircle(size / 2f, size / 2f, size / 2f, paint)
 
-    // 4. 지도 속성 설정
-    val properties = MapProperties(
-        isMyLocationEnabled = false // 실제 권한 로직 전까지는 꺼둡니다.
-    )
-
-    // 5. GoogleMap 컴포저블 배치
-    GoogleMap(
-        modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState,
-        properties = properties,
-        uiSettings = uiSettings
-    ) {
-        // 여기에 나중에 Marker(핀)를 추가할 예정입니다!
+    // 숫자 텍스트
+    paint.apply {
+        color = Color.WHITE
+        textSize = 40f
+        textAlign = Paint.Align.CENTER
     }
+    val xPos = canvas.width / 2f
+    val yPos = (canvas.height / 2f) - ((paint.descent() + paint.ascent()) / 2f)
+    canvas.drawText(count.toString(), xPos, yPos, paint)
+
+    return BitmapDescriptorFactory.fromBitmap(bitmap)
 }
