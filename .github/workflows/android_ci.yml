@@ -1,4 +1,4 @@
-name: Android CI (Build Check)
+name: Generate APK
 
 on:
   push:
@@ -22,13 +22,15 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      # 실행 권한 주고 바로 빌드
+      # 중요: 빌드 전에 GitHub Secret을 사용하여 local.properties 파일을 생성합니다.
+      - name: Create local.properties
+        run: echo "MAPS_API_KEY=${{ secrets.MAPS_API_KEY }}" > local.properties
+
       - name: Build Debug APK
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      # 빌드 결과물(APK) 무조건 업로드
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
