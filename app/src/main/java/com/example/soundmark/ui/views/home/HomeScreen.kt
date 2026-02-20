@@ -52,6 +52,16 @@ fun HomeScreen(viewModel: HomeViewModel) {
             )
         }
     }
+
+    // ClusterMark를 눌렀을 때 나오는 BottomoSheet
+    if (selectedCluster != null) {
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.dismissBottomSheet() },
+            sheetState = sheetState
+        ) {
+            ClusterDetailContent(selectedCluster!!)
+        }
+    }
 }
 
 @Composable
