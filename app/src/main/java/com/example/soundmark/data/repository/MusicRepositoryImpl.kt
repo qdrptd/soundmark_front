@@ -4,8 +4,9 @@ import com.example.soundmark.data.model.SoundMark
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import javax.inject.Inject
 
-class MusicRepositoryImpl : MusicRepository {
+class MusicRepositoryImpl @Inject constructor() : MusicRepository {
     override fun getNearbyMusicMarks(userLocation: LatLng): Flow<List<SoundMark>> = flow {
         // TODO: 현재는 샘플 데이터 반환
         val mockData = listOf(

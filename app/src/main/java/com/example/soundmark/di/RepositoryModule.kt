@@ -1,5 +1,7 @@
 package com.example.soundmark.di
 
+import com.example.soundmark.data.repository.MusicRepository
+import com.example.soundmark.data.repository.MusicRepositoryImpl
 import com.example.soundmark.data.repository.UserRepository
 import com.example.soundmark.data.repository.UserRepositoryImpl
 import dagger.Binds
@@ -17,4 +19,10 @@ abstract class RepositoryModule {
     abstract fun bindUserRepository(
         userRepositoryImpl: UserRepositoryImpl
     ): UserRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindMusicRepository(
+        musicRepositoryImpl: MusicRepositoryImpl
+    ): MusicRepository
 }
