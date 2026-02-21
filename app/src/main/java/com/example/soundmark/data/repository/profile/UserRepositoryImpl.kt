@@ -1,5 +1,6 @@
 package com.example.soundmark.data.repository.profile
 
+import com.example.soundmark.data.dto.toProfileDomain
 import com.example.soundmark.data.model.Profile
 import com.example.soundmark.data.model.User
 import com.example.soundmark.data.network.ApiService
@@ -22,8 +23,9 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun getMyProfile(): Result<Profile> {
         return try {
-            val profile = apiService.getMyProfile()
-            Result.success(profile)
+            val response = apiService.getMyProfile()
+            // DTO를 도메인 모델 Profile로 변환
+            Result.success(response.toProfileDomain())
         } catch (e: Exception) {
             Result.failure(e)
         }

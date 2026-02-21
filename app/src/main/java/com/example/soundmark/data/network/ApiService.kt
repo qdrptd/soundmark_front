@@ -4,6 +4,7 @@ import com.example.soundmark.data.dto.JwtResponse
 import com.example.soundmark.data.dto.MapResponseDto
 import com.example.soundmark.data.dto.RecommendationDetailDto
 import com.example.soundmark.data.dto.SpotifyVerifyRequest
+import com.example.soundmark.data.dto.UserProfileDto
 import com.example.soundmark.data.dto.UserResponse
 import com.example.soundmark.data.model.Profile
 import retrofit2.Response
@@ -21,7 +22,7 @@ interface ApiService {
     suspend fun getMe(): UserResponse
 
     @GET("api/v1/users/me")
-    suspend fun getMyProfile(): Profile
+    suspend fun getMyProfile(): UserProfileDto
 
     @GET("api/v1/users/{userId}")
     suspend fun getProfileByUserId(
@@ -37,8 +38,8 @@ interface ApiService {
     suspend fun getNearbyMusic(
         @Query("lat") lat: Double,
         @Query("lng") lng: Double,
-        @Query("mylat") myLat: Double, // 사용자의 실제 위도 (GPS)
-        @Query("mylng") myLng: Double  // 사용자의 실제 경도 (GPS)
+        @Query("my_lat") myLat: Double, // 사용자의 실제 위도 (GPS)
+        @Query("my_lng") myLng: Double  // 사용자의 실제 경도 (GPS)
     ): Response<MapResponseDto>
 
     // 2. 추천곡 상세 조회 (추가된 부분)
