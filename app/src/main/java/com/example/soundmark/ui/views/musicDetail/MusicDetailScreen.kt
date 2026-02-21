@@ -2,6 +2,7 @@ package com.example.soundmark.ui.views.musicDetail
 
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -33,6 +34,7 @@ fun MusicDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    Log.d("MusicDetailScreen", "soundMarkId: $soundMarkId")
 
     LaunchedEffect(soundMarkId) {
         viewModel.loadSoundMark(soundMarkId)
