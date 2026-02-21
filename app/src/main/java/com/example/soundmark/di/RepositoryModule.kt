@@ -6,6 +6,8 @@ import com.example.soundmark.data.repository.profile.MarkRepository
 import com.example.soundmark.data.repository.profile.MarkRepositoryImpl
 import com.example.soundmark.data.repository.profile.UserRepository
 import com.example.soundmark.data.repository.profile.UserRepositoryImpl
+import com.example.soundmark.data.repository.songDetail.SoundMarkDetailRepository
+import com.example.soundmark.data.repository.songDetail.SoundMarkDetailRepositoryImpl
 import com.example.soundmark.data.repository.spotify.SpotifyRepository
 import com.example.soundmark.data.repository.spotify.SpotifyRepositoryImpl
 import com.example.soundmark.data.repository.user.AuthRepository
@@ -39,10 +41,18 @@ abstract class RepositoryModule {
     ): AuthRepository
 
     @Binds
+
     @Singleton
     abstract fun bindMarkRepository(
         markRepositoryImpl: MarkRepositoryImpl
     ): MarkRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSoundMarkDetailRepository(
+        soundMarkDetailRepositoryImpl: SoundMarkDetailRepositoryImpl
+    ): SoundMarkDetailRepository
+
 
     @Binds
     @Singleton

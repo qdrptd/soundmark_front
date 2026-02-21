@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -17,7 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.soundmark.data.model.ClusterMark
+import com.example.soundmark.data.model.SoundMark
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -28,6 +31,7 @@ import com.google.maps.android.compose.*
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
+    onNavigateToSongDetail: (String) -> Unit,
     onNavigateToAdd: () -> Unit
 ) {
     val clusters by viewModel.clusteredMarks.collectAsState()
@@ -91,22 +95,37 @@ fun HomeScreen(
                 onDismissRequest = { viewModel.dismissBottomSheet() },
                 sheetState = sheetState
             ) {
-                ClusterDetailContent(selectedCluster!!)
+                ClusterDetailContent(cluster = selectedCluster!!,
+                    onItemClick = { soundMarkId ->
+                        viewModel.dismissBottomSheet() // 시트 먼저 닫기
+                        onNavigateToSongDetail(soundMarkId) // 상세 화면으로 이동
+                    })
             }
         }
     }
 }
 
 @Composable
-fun ClusterDetailContent(cluster: ClusterMark) {
+fun ClusterDetailContent(
+    cluster: ClusterMark,
+    onItemClick: (String) -> Unit
+) {
     Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
         Text("이 구역의 사운드 마크 (${cluster.count}개)", style = MaterialTheme.typography.headlineSmall)
         Spacer(modifier = Modifier.height(16.dp))
         cluster.pins.forEach { pin ->
             ListItem(
+                modifier = Modifier.clickable { onItemClick(pin.soundmarkId) },
                 headlineContent = { Text(pin.track.title) },
                 supportingContent = { Text(pin.track.artist) },
-                leadingContent = { /* 앨범 커버 이미지 로드 로직 */ }
+                leadingContent = {
+                    // Coil을 사용한 앨범 커버 이미지 표시
+                    AsyncImage(
+                        model = pin.track.albumCoverUrl,
+                        contentDescription = "Album Cover",
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
             )
         }
     }
