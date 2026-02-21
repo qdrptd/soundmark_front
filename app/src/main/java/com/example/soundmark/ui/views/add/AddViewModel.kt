@@ -132,10 +132,11 @@ class AddViewModel @Inject constructor(
                         val location = locationService.getCurrentLocation()
                         if (location != null) {
                             val result = mapRepository.searchNearbyPlaces(location.latitude, location.longitude, radius = 200)
-                            result.onSuccess { places ->                    _uiState.value = _uiState.value.copy(
+                            result.onSuccess { places ->
+                    _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         nearbyPlaces = places,
-                        currentLocation = places.firstOrNull() ?: location
+                        currentLocation = location
                     )
                 }.onFailure { exception ->
                     _uiState.value = _uiState.value.copy(
