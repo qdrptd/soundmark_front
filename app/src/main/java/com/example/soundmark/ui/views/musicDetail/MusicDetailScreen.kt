@@ -3,6 +3,7 @@ package com.example.soundmark.ui.views.musicDetail
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -198,11 +199,12 @@ private fun TopBarSection(
     val totalCount = reactions.sumOf { it.count }
 
     // 2. 반응 수에 따른 성장 단계 이모지 결정
-    val growthEmoji = when {
-        totalCount < 10 -> "🌱"    // 10개 미만: 새싹
-        totalCount < 100 -> "🌿"   // 100개 미만: 묘목
-        totalCount < 1000 -> "🌳"  // 1000개 미만: 나무
-        else -> "🌲"               // 그 이상: 숲
+    val growthIconRes = when {
+        totalCount <= 50 -> R.drawable.icon1
+        totalCount <= 200 -> R.drawable.icon2
+        totalCount <= 500 -> R.drawable.icon3
+        totalCount <= 1000 -> R.drawable.icon4
+        else -> R.drawable.icon5
     }
 
     Box(
@@ -215,10 +217,9 @@ private fun TopBarSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 원형 안에 단계별 이모지 하나만 표시
-            ReactionCircle(
-                emoji = growthEmoji,
-                size = 48.dp,
-                modifier = Modifier
+            IconCircle(
+                resId = growthIconRes,
+                size = 48.dp
             )
         }
 
@@ -242,6 +243,28 @@ private fun TopBarSection(
         Box(modifier = Modifier.align(Alignment.CenterEnd)) {
             CloseButton(onClick = onBackClick)
         }
+    }
+}
+
+/** 이모지 대신 XML 이미지를 그리는 원형 컨테이너 */
+@Composable
+private fun IconCircle(
+    resId: Int,
+    size: Dp,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.size(size),
+        shape = CircleShape,
+        color = Color.LightGray.copy(alpha = 0.2f) // 배경 원형 (필요시 수정)
+    ) {
+        Image(
+            painter = painterResource(id = resId),
+            contentDescription = "Growth Stage",
+            modifier = Modifier
+                .padding(2.dp) // 아이콘과 원 테두리 사이 간격
+                .fillMaxSize()
+        )
     }
 }
 
