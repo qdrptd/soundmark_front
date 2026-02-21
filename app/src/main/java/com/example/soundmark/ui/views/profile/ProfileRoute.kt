@@ -28,10 +28,12 @@ import com.example.soundmark.data.model.SoundMark
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileRoute(userId: String) {
+fun ProfileRoute(userId: String,
+                 onNavigateToEdit: (String, String, Int) -> Unit) {
     val viewModel = hiltViewModel<ProfileViewModel>()
     val uiState by viewModel.uiState.collectAsState()
     var isExpanded by remember { mutableStateOf(false) }
+    var isMenuVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.fetchProfile()
@@ -99,13 +101,16 @@ fun ProfileRoute(userId: String) {
                                         maxLines = 1
                                     )
                                     Spacer(modifier = Modifier.height(12.dp))
+
+                                    // [수정] 2. 실제 상태 메시지 바인딩
                                     Text(
-                                        text = "음악과 함께 걷는 여행자 ",
+                                        text = profile.user.statusMessage.ifBlank { "음악과 함께 걷는 여행자" },
                                         style = MaterialTheme.typography.bodySmall.size(14),
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
+
                                     Spacer(modifier = Modifier.height(12.dp))
                                     Row(
                                         horizontalArrangement = Arrangement.spacedBy(15.dp)
@@ -116,11 +121,31 @@ fun ProfileRoute(userId: String) {
                                     }
                                 }
                                 Spacer(modifier = Modifier.width(16.dp))
-                                Icon(
-                                    modifier = Modifier.size(20.dp),
-                                    imageVector = Icons.Filled.MoreVert,
-                                    contentDescription = "More"
-                                )
+                                // [수정] 3. 메뉴 클릭 시 실제 데이터 전달
+                                Box {
+                                    IconButton(onClick = { isMenuVisible = true }) {
+                                        Icon(imageVector = Icons.Filled.MoreVert, contentDescription = "More")
+                                    }
+                                    DropdownMenu(
+                                        expanded = isMenuVisible,
+                                        onDismissRequest = { isMenuVisible = false }
+                                    ) {
+                                        if (uiState.isMe) {
+                                            DropdownMenuItem(
+                                                text = { Text("프로필 수정") },
+                                                onClick = {
+                                                    isMenuVisible = false
+                                                    // 실제 데이터를 담아서 이동
+                                                    onNavigateToEdit(
+                                                        profile.user.name,
+                                                        profile.user.statusMessage,
+                                                        profile.user.profileImage
+                                                    )
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
 
