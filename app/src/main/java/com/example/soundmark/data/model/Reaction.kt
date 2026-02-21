@@ -11,18 +11,19 @@ data class Reaction(
  * 서버에서 관리하며, 새로운 리액션이 추가되어도 클라이언트 코드는 변하지 않습니다.
  */
 data class ReactionType(
-    val id: String,       // 고유 식별자 (예: "fire", "heart_eyes")
-    val emoji: String,    // 표시할 이모지 (예: "🔥")
-    val displayName: String // 접근성이나 라벨용 이름 (예: "불")
+    val id: String,       // 이제 이모지 유니코드나 문자열 자체를 ID로 씁니다. (예: "🔥")
+    val emoji: String,    // 표시할 문자열
+    val displayName: String
 ) {
     companion object {
-        // 기본적으로 제공할 리액션들 (초기값 또는 폰백용)
-        val DEFAULT_TYPES = listOf(
-            ReactionType("fire", "🔥", "Fire"),
-            ReactionType("sad", "😢", "Sad"),
-            ReactionType("love", "❤️", "Love"),
-            ReactionType("clap", "👏", "Clap")
-        )
+        // 사용자가 이모지 키보드에서 아무거나 골랐을 때 객체를 생성해주는 헬퍼 함수
+        fun fromEmoji(emoji: String): ReactionType {
+            return ReactionType(
+                id = emoji,
+                emoji = emoji,
+                displayName = "Emoji"
+            )
+        }
 
         val OTHERS = ReactionType("others", "➕", "Others")
     }

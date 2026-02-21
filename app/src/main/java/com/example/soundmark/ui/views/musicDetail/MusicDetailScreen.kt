@@ -2,6 +2,7 @@ package com.example.soundmark.ui.views.musicDetail
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -40,6 +41,7 @@ fun MusicDetailScreen(
     onProfileClick: (userId: String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showEmojiPicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(soundMarkId) {
         viewModel.loadSoundMark(soundMarkId)
@@ -54,10 +56,22 @@ fun MusicDetailScreen(
                 MusicDetailContent(
                     soundMark = state.soundMark,
                     onProfileClick = onProfileClick,
-                    onBackClick = onBackClick
+                    onBackClick = onBackClick,
+                    onOthersClick = { showEmojiPicker = true },
+                    onReactionClick = { type -> viewModel.toggleReaction(type) }
                 )
             }
         }
+    }
+
+    if (showEmojiPicker) {
+        EmojiPickerDialog(
+            onDismiss = { showEmojiPicker = false },
+            onEmojiSelected = { emoji ->
+                viewModel.toggleReaction(ReactionType.fromEmoji(emoji))
+                showEmojiPicker = false
+            }
+        )
     }
 }
 
@@ -92,7 +106,9 @@ private fun DetailPopupWrapper(
 private fun MusicDetailContent(
     soundMark: SoundMark,
     onProfileClick: (String) -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onOthersClick: () -> Unit,
+    onReactionClick: (ReactionType) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -150,7 +166,8 @@ private fun MusicDetailContent(
         // 7. 하단 리액션 바 (others 및 이모지들)
         BottomReactionBar(
             reactions = soundMark.reactions,
-            onReactionClick = { type -> /* TODO: API 호출 */ }
+            onOthersClick = onOthersClick,
+            onReactionClick = onReactionClick
         )
     }
 }
@@ -233,13 +250,11 @@ private fun TrackInfoSection(track: Track) {
 /** [소부품 C] 중앙 리액션 통계 */
 @Composable
 private fun TopReactionsSummary(reactions: List<Reaction>) {
-    // 1. 카운트 순으로 정렬하여 상위 4개 추출
     val top4Reactions = reactions
         .sortedByDescending { it.count }
         .filter { it.count > 0 }
         .take(4)
 
-    // 2. 전체 리액션 수 합계
     val totalCount = reactions.sumOf { it.count }
 
     if (totalCount > 0) {
@@ -247,27 +262,55 @@ private fun TopReactionsSummary(reactions: List<Reaction>) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            // 이모지들을 겹치거나 나열하여 표시
-            Box(contentAlignment = Alignment.CenterStart) {
+            // 1. 겹쳐진 원형 이모지 스택
+            Box(
+                contentAlignment = Alignment.CenterStart,
+                modifier = Modifier.padding(end = 8.dp)
+            ) {
+                // 뒤에 있는 것부터 먼저 그려야 겹침이 자연스럽습니다.
                 top4Reactions.forEachIndexed { index, reaction ->
-                    Text(
-                        text = reaction.type.emoji,
-                        fontSize = 18.sp,
-                        modifier = Modifier.padding(start = (index * 14).dp) // 살짝 겹치는 효과
+                    ReactionCircle(
+                        emoji = reaction.type.emoji,
+                        modifier = Modifier.padding(start = (index * 20).dp) // 20dp씩 겹치게 설정
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(if (top4Reactions.size > 1) (top4Reactions.size * 10).dp else 8.dp))
+            // 2. 이모지 개수만큼 간격 확보를 위한 계산된 여백
+            val extraPadding = if (top4Reactions.size > 1) (top4Reactions.size * 5).dp else 0.dp
+            Spacer(modifier = Modifier.width(extraPadding))
 
-            // 총 숫자 표시 (예: 1,234)
+            // 3. 총 숫자 표시
             Text(
                 text = String.format("%,d", totalCount),
                 style = TextStyle(
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                 )
+            )
+        }
+    }
+}
+
+/** [신규 부품] 이모지를 담는 깔끔한 원형 컨테이너 */
+@Composable
+private fun ReactionCircle(
+    emoji: String,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier
+            .size(30.dp), // 원의 크기
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.surface, // 원 내부 배경색
+        border = BorderStroke(2.dp, MaterialTheme.colorScheme.surfaceVariant), // 테두리
+        shadowElevation = 2.dp // 살짝 입체감 추가
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(
+                text = emoji,
+                fontSize = 16.sp
             )
         }
     }
@@ -314,6 +357,7 @@ private fun SpotifyButton(spotifyUrl: String, onClick: () -> Unit) {
 @Composable
 private fun BottomReactionBar(
     reactions: List<Reaction>, // [🔥 10개, ❤️ 5개, 👏 2개 ...] 형태로 들어옴
+    onOthersClick: () -> Unit,
     onReactionClick: (ReactionType) -> Unit
 ) {
     Row(
@@ -327,7 +371,7 @@ private fun BottomReactionBar(
             icon = ReactionType.OTHERS.emoji,
             label = "others",
             isSelected = false,
-            onClick = { /* 전체 리액션 리스트 팝업 띄우기 등 */ }
+            onClick = onOthersClick
         )
 
         Spacer(modifier = Modifier.width(16.dp))
