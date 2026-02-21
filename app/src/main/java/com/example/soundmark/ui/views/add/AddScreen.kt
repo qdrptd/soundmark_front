@@ -222,20 +222,6 @@ fun AddScreen(
         }
     }
 
-    if (showSongBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showSongBottomSheet = false },
-            sheetState = songSheetState
-        ) {
-            SongSelectionContent(
-                onTrackSelected = { track ->
-                    viewModel.onTrackSelected(track)
-                    showSongBottomSheet = false
-                }
-            )
-        }
-    }
-
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
@@ -255,6 +241,21 @@ fun AddScreen(
                             Manifest.permission.ACCESS_COARSE_LOCATION
                         )
                     )
+                }
+            )
+        }
+    }
+
+
+    if (showSongBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showSongBottomSheet = false },
+            sheetState = songSheetState
+        ) {
+            SongSelectionContent(
+                onTrackSelected = { track ->
+                    viewModel.onTrackSelected(track)
+                    showSongBottomSheet = false
                 }
             )
         }
