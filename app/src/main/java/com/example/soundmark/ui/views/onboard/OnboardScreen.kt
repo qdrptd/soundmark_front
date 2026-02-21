@@ -1,9 +1,13 @@
 package com.example.soundmark.ui.views.onboard
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -16,9 +20,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.soundmark.R
+import com.example.soundmark.ui.theme.BackgroundDark
+import com.example.soundmark.util.color
 
 @Composable
 fun OnboardScreen(
@@ -26,45 +35,69 @@ fun OnboardScreen(
 ) {
     val context = LocalContext.current
     val loginState by viewModel.loginState.collectAsState()
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(R.drawable.logo_groo),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth(0.25f)   // 화면 가로의 1/4
+                    .aspectRatio(77f / 137f),   // 정확한 비율
+                contentScale = ContentScale.Fit
+            )
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "SoundMark",
-            style = MaterialTheme.typography.headlineLarge
-        )
-        Text(
-            text = "Track your favorite songs and marks.",
-            style = MaterialTheme.typography.bodyMedium
-        )
+            Spacer(modifier = Modifier.height(32.dp))
 
-        Spacer(modifier = Modifier.height(32.dp))
 
+        }
         when (loginState) {
             is LoginState.Loading -> {
                 CircularProgressIndicator()
             }
+
             is LoginState.Error -> {
                 Text(
                     text = (loginState as LoginState.Error).message,
                     color = Color.Red,
                     modifier = Modifier.padding(16.dp)
                 )
-                LoginButton(onClick = { viewModel.onSpotifyLoginClick(context) })
+                LoginButton(
+                    onClick = { viewModel.onSpotifyLoginClick(context) },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(horizontal = 24.dp, vertical = 45.dp)
+                        .fillMaxWidth()
+                )
             }
+
             else -> {
-                LoginButton(onClick = { viewModel.onSpotifyLoginClick(context) })
+                LoginButton(
+                    onClick = { viewModel.onSpotifyLoginClick(context) },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(horizontal = 24.dp, vertical = 45.dp)
+                        .fillMaxWidth()
+                )
             }
         }
     }
 }
 
 @Composable
-fun LoginButton(onClick: () -> Unit) {
-    Button(onClick = onClick) {
-        Text("Login with Spotify")
+fun LoginButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier
+    ) {
+        Text(text = "Spotify로 로그인하기", style = MaterialTheme.typography.bodyMedium.color(
+            BackgroundDark
+        ))
     }
 }
