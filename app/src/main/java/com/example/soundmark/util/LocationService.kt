@@ -21,6 +21,17 @@ class LocationService @Inject constructor(
     @SuppressLint("MissingPermission")
     suspend fun getCurrentLocation(): GeoLocation? {
         return try {
+            // Try last known location first for immediate response
+            val lastLocation = fusedLocationClient.lastLocation.await()
+            if (lastLocation != null) {
+                return GeoLocation(
+                    latitude = lastLocation.latitude,
+                    longitude = lastLocation.longitude,
+                    placeName = null
+                )
+            }
+
+            // Fallback to high accuracy location if last location is unavailable
             val location = fusedLocationClient.getCurrentLocation(
                 Priority.PRIORITY_HIGH_ACCURACY,
                 null

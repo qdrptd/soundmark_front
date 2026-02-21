@@ -3,6 +3,7 @@ package com.example.soundmark.ui.views.add
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soundmark.data.model.GeoLocation
+import com.example.soundmark.data.model.Track
 import com.example.soundmark.data.repository.map.MapRepository
 import com.example.soundmark.util.LocationService
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,6 +17,8 @@ data class AddUiState(
     val isLoading: Boolean = false,
     val currentLocation: GeoLocation? = null,
     val nearbyPlaces: List<GeoLocation> = emptyList(),
+    val selectedPlace: GeoLocation? = null,
+    val selectedTrack: Track? = null,
     val error: String? = null,
     val permissionDenied: Boolean = false
 )
@@ -28,6 +31,14 @@ class AddViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(AddUiState())
     val uiState: StateFlow<AddUiState> = _uiState.asStateFlow()
+
+    fun onPlaceSelected(place: GeoLocation) {
+        _uiState.value = _uiState.value.copy(selectedPlace = place)
+    }
+
+    fun onTrackSelected(track: Track) {
+        _uiState.value = _uiState.value.copy(selectedTrack = track)
+    }
 
     fun fetchNearbyPlacesWithGPS() {
         viewModelScope.launch {
