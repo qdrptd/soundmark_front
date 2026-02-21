@@ -1,7 +1,7 @@
 package com.example.soundmark.data.model
 
 data class SoundMark(
-    val id: Long,
+    val id: String,
     val track: Track,
     val author: User,
     val location: GeoLocation,
@@ -13,7 +13,7 @@ data class SoundMark(
 ) {
     companion object {
         val Default = SoundMark(
-            id = 1L,
+            id = "1234",
             track = Track.Default,
             author = User.Default,
             location = GeoLocation.Default,

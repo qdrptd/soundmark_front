@@ -21,14 +21,18 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.soundmark.ui.theme.SoundMarkTheme
 import dagger.hilt.android.AndroidEntryPoint
 import com.example.soundmark.ui.views.home.HomeScreen
 import com.example.soundmark.ui.views.home.HomeViewModel
+import com.example.soundmark.ui.views.musicDetail.MusicDetailScreen
+import com.example.soundmark.ui.views.musicDetail.MusicDetailViewModel
 import com.example.soundmark.ui.views.onboard.LoginState
 import com.example.soundmark.ui.views.onboard.OnboardScreen
 import com.example.soundmark.ui.views.onboard.OnboardViewModel
@@ -112,10 +116,31 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
             composable(NavigationDestination.ONBOARD.name) {
                 OnboardScreen(viewModel = onboardViewModel)
             }
+
             composable(NavigationDestination.HOME.name) {
                 val homeViewModel: HomeViewModel = hiltViewModel()
-                HomeScreen(viewModel = homeViewModel)
+                HomeScreen(viewModel = homeViewModel,
+                    onNavigateToSongDetail = { soundMarkId ->
+                        navController.navigate("${NavigationDestination.SONG_DETAIL.name}/$soundMarkId")
+                    }
+                )
             }
+
+            composable(
+                route = NavigationDestination.SONG_DETAIL.route,
+                arguments = listOf(navArgument("soundMarkId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val soundMarkId = backStackEntry.arguments?.getString("soundMarkId") ?: ""
+                val detailViewModel: MusicDetailViewModel = hiltViewModel()
+
+                MusicDetailScreen(
+                    soundMarkId = soundMarkId,
+                    viewModel = detailViewModel,
+                    onBackClick = { navController.popBackStack() },
+                    onProfileClick = { userId -> /* TODO: 프로필 이동 로직 */ }
+                )
+            }
+
             composable(NavigationDestination.SONG_LIST.name) {
                 SongListScreen()
             }

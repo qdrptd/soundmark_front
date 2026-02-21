@@ -57,7 +57,7 @@ object MockDataSource {
     // 3. 상세 화면용 SoundMark 정보
     fun getSoundMarkDetail(id: String): SoundMark {
         return SoundMark(
-            id = id.toLongOrNull() ?: 1L,
+            id = id,
             track = mockTracks[0],
             author = User.Default.copy(name = "음악대장"),
             location = GeoLocation(37.5665, 126.9780, "엘리스랩 성수"),
