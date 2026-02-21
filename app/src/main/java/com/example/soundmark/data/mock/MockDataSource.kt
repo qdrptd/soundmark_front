@@ -9,21 +9,21 @@ object MockDataSource {
         Track(
             title = "Hype Boy",
             artist = "NewJeans",
-            albumCoverUrl = "https://example.com/hypeboy.jpg",
+            albumCoverUrl = "https://picsum.photos/200/300",
             spotifyUrl = "spotify:track:1",
             previewUrl = null
         ),
         Track(
             title = "Ditto",
             artist = "NewJeans",
-            albumCoverUrl = "https://example.com/ditto.jpg",
+            albumCoverUrl = "https://picsum.photos/200/300",
             spotifyUrl = "spotify:track:2",
             previewUrl = null
         ),
         Track(
             title = "Seven",
             artist = "Jungkook",
-            albumCoverUrl = "https://example.com/seven.jpg",
+            albumCoverUrl = "https://picsum.photos/200/300",
             spotifyUrl = "spotify:track:3",
             previewUrl = null
         )
@@ -61,8 +61,8 @@ object MockDataSource {
             track = mockTracks[0],
             author = User.Default.copy(name = "음악대장"),
             location = GeoLocation(37.5665, 126.9780, "엘리스랩 성수"),
-            message = "여기서 이 노래 들으면 감성이 폭발합니다.. 꼭 들어보세요!",
-            imageUrls = listOf("https://example.com/photo1.jpg"),
+            message = "여기서 이 노래 들으면 감성이 폭발합니다.. 꼭 들어보세요!" + id,
+            imageUrls = listOf("https://picsum.photos/200/300"),
             reactions = emptyList(),
             createdAt = System.currentTimeMillis(),
             isActive = true
