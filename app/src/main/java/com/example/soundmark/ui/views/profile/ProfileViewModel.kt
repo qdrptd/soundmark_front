@@ -34,7 +34,7 @@ class ProfileViewModel @Inject constructor(
         fetchProfile()
     }
 
-    private fun fetchProfile() {
+    fun fetchProfile() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             

@@ -102,10 +102,14 @@ fun HomeScreen(
         ) {
             clusters.forEach { cluster ->
                 key("${cluster.id}_${cluster.isActive}") {
+                    val totalReaction = if (cluster.count == 1) {
+                        cluster.pins.firstOrNull()?.count ?: 0
+                    } else 0
+
                     Marker(
                         state = rememberMarkerState(position = cluster.position),
                         // 여기서 다시 숫자가 들어간 아이콘을 만듭니다!
-                        icon = createClusterIcon(context, cluster.count, cluster.isActive),
+                        icon = createClusterIcon(context, cluster.count, cluster.isActive, totalReaction),
                         onClick = {
                             viewModel.onClusterClick(cluster)
                             true
@@ -199,7 +203,8 @@ fun ClusterDetailContent(
 fun createClusterIcon(
     context: Context,
     count: Int,
-    isActive: Boolean
+    isActive: Boolean,
+    totalReaction: Int = 0
 ): BitmapDescriptor {
 
     // 1. count 수에 따라 사용할 이미지 리소스 결정
@@ -207,7 +212,16 @@ fun createClusterIcon(
         count >= 50 -> R.drawable.icon_map50up
         count >= 10 -> R.drawable.icon_map10up
         count > 1    -> R.drawable.icon_map2up
-        else         -> R.drawable.icon1       // FIXME
+        else         -> {
+            // count가 1일 때: 핀의 반응 수(totalReaction)에 따른 성장형 아이콘
+            when {
+                totalReaction <= 50 -> R.drawable.icon1
+                totalReaction <= 200 -> R.drawable.icon2
+                totalReaction <= 500 -> R.drawable.icon3
+                totalReaction <= 1000 -> R.drawable.icon4
+                else -> R.drawable.icon5
+            }
+        }
     }
 
     // 2. 결정된 리소스로 비트맵 로드

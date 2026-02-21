@@ -33,6 +33,10 @@ fun ProfileRoute(userId: String) {
     val uiState by viewModel.uiState.collectAsState()
     var isExpanded by remember { mutableStateOf(false) }
 
+    LaunchedEffect(Unit) {
+        viewModel.fetchProfile()
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
