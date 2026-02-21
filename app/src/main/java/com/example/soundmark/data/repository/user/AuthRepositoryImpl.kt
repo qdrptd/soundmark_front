@@ -2,6 +2,8 @@ package com.example.soundmark.data.repository.user
 
 import android.content.Context
 import android.util.Log
+import com.example.soundmark.data.dto.SpotifyVerifyRequest
+import com.example.soundmark.data.network.ApiService
 import com.example.soundmark.data.network.SpotifyAuthApi
 import com.example.soundmark.data.network.SpotifyAuthDataSource
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -15,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
     private val spotifyAuthApi: SpotifyAuthApi,
+    private val apiService: ApiService,
     private val spotifyDataSource: SpotifyAuthDataSource,
     @ApplicationContext private val context: Context
 ) : AuthRepository {
@@ -24,8 +27,9 @@ class AuthRepositoryImpl @Inject constructor(
     private val _isLoggedIn = MutableStateFlow(getAccessToken() != null)
     override val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
 
+    // --- Backend Tokens ---
     override fun saveAccessToken(token: String) {
-        Log.d("AuthRepository", "Saving Access Token: ${token.take(10)}...")
+        Log.d("AuthRepository", "Saving Backend Access Token: ${token.take(10)}...")
         prefs.edit { putString("access_token", token) }
         _isLoggedIn.value = true
     }
@@ -35,7 +39,7 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override fun saveRefreshToken(token: String) {
-        Log.d("AuthRepository", "Saving Refresh Token: ${token.take(10)}...")
+        Log.d("AuthRepository", "Saving Backend Refresh Token: ${token.take(10)}...")
         prefs.edit { putString("refresh_token", token) }
     }
 
@@ -43,26 +47,45 @@ class AuthRepositoryImpl @Inject constructor(
         return prefs.getString("refresh_token", null)
     }
 
+    // --- Spotify Tokens ---
+    override fun saveSpotifyAccessToken(token: String) {
+        Log.d("AuthRepository", "Saving Spotify Access Token: ${token.take(10)}...")
+        prefs.edit { putString("spotify_access_token", token) }
+    }
+
+    override fun getSpotifyAccessToken(): String? {
+        return prefs.getString("spotify_access_token", null)
+    }
+
+    override fun saveSpotifyRefreshToken(token: String) {
+        Log.d("AuthRepository", "Saving Spotify Refresh Token: ${token.take(10)}...")
+        prefs.edit { putString("spotify_refresh_token", token) }
+    }
+
+    override fun getSpotifyRefreshToken(): String? {
+        return prefs.getString("spotify_refresh_token", null)
+    }
+
     override fun clearSession() {
         prefs.edit { 
             remove("access_token")
             remove("refresh_token")
+            remove("spotify_access_token")
+            remove("spotify_refresh_token")
+            remove("verifier")
         }
         _isLoggedIn.value = false
     }
 
-    override suspend fun handleSpotifyLogin(
+    override suspend fun handleSpotifyPKCE(
         code: String,
         clientId: String,
-        redirectUri: String,
+        redirectUri: String
     ): Result<String> = runCatching {
+        Log.d("AuthRepository", "Starting Spotify PKCE flow with code: $code")
+        val verifier = getCodeVerifier() ?: throw Exception("Code verifier is null")
 
-
-        Log.d("code", code)
-        val verifier = getCodeVerifier()
-        Log.d("verifier", verifier.toString())
-        if (verifier == null) throw Exception("verifier is null")
-        // 1️⃣ code → access token
+        // 1️⃣ Exchange authorization code for Spotify tokens
         val tokenResponse = spotifyAuthApi.exchangeToken(
             code = code,
             redirectUri = redirectUri,
@@ -70,19 +93,32 @@ class AuthRepositoryImpl @Inject constructor(
             codeVerifier = verifier
         )
 
-        Log.d("accessToken", tokenResponse.accessToken)
+        Log.d("AuthRepository", "Spotify tokens received. Saving Spotify Access/Refresh Tokens.")
+        saveSpotifyAccessToken(tokenResponse.accessToken)
+        tokenResponse.refreshToken?.let { saveSpotifyRefreshToken(it) }
 
-        val spotifyAccessToken = tokenResponse.accessToken
-        saveAccessToken(spotifyAccessToken)
-        Log.d("AuthRepository", "Refresh token in response: ${tokenResponse.refreshToken != null}")
-        tokenResponse.refreshToken?.let { saveRefreshToken(it) }
+        // 2️⃣ Verify with backend to get JWT
+        val verifyRequest = SpotifyVerifyRequest(
+            accessToken = tokenResponse.accessToken,
+            refreshToken = tokenResponse.refreshToken ?: "",
+            expiresIn = tokenResponse.expiresIn
+        )
+        
+        val jwtResponse = apiService.spotifyVerify(verifyRequest)
+        Log.d("AuthRepository", "Backend verification successful. JWT received.")
 
-        return Result.success(spotifyAccessToken)
+        // 3️⃣ Save backend JWT and refresh token
+        saveAccessToken(jwtResponse.accessToken)
+        jwtResponse.refreshToken?.let { saveRefreshToken(it) }
+
+        return Result.success(jwtResponse.accessToken)
+    }.onFailure { e ->
+        Log.e("AuthRepository", "handleSpotifyPKCE failed: ${e.message}", e)
     }
 
     override suspend fun refreshAccessToken(clientId: String): Result<String> = runCatching {
-        val refreshToken = getRefreshToken() ?: throw Exception("No refresh token available")
-        Log.d("AuthRepository", "Attempting refresh with token: ${refreshToken.take(10)}...")
+        val refreshToken = getSpotifyRefreshToken() ?: throw Exception("No Spotify refresh token available")
+        Log.d("AuthRepository", "Attempting Spotify token refresh via Spotify API...")
         
         val tokenResponse = spotifyAuthApi.refreshToken(
             refreshToken = refreshToken,
@@ -90,9 +126,8 @@ class AuthRepositoryImpl @Inject constructor(
         )
 
         val newAccessToken = tokenResponse.accessToken
-        saveAccessToken(newAccessToken)
-        Log.d("AuthRepository", "New refresh token in response: ${tokenResponse.refreshToken != null}")
-        tokenResponse.refreshToken?.let { saveRefreshToken(it) }
+        saveSpotifyAccessToken(newAccessToken)
+        tokenResponse.refreshToken?.let { saveSpotifyRefreshToken(it) }
         
         return Result.success(newAccessToken)
     }.onFailure { e ->

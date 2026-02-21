@@ -2,16 +2,13 @@ package com.example.soundmark.data.dto
 
 import com.google.gson.annotations.SerializedName
 
-data class JwtResponse(
-    @SerializedName("access_token")
+data class SpotifyVerifyRequest(
+    @SerializedName("spotify_access_token")
     val accessToken: String,
 
-    @SerializedName("refresh_token")
+    @SerializedName("spotify_refresh_token")
     val refreshToken: String,
 
-    @SerializedName("token_type")
-    val tokenType: String,
-
     @SerializedName("expires_in")
-    val expiresIn: Long
+    val expiresIn: Int
 )
