@@ -104,63 +104,104 @@ private fun MusicDetailContent(
 ) {
     val context = LocalContext.current
 
-    Box {
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 24.dp, vertical = 32.dp)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // 1. 앨범 커버 (가장 크게 배치)
-            AlbumCoverSection(track = soundMark.track)
-
-            Spacer(Modifier.height(20.dp))
-
-            // 2. 곡 정보 (제목, 아티스트)
-            TrackInfoSection(track = soundMark.track)
-
-            Spacer(Modifier.height(16.dp))
-
-            // 3. 중앙 리액션 통계 (예: 총 좋아요 수)
-            // 임시로 🔥 아이콘과 1,234라는 숫자를 사용합니다.
-            CentralReactionStats(count = 1234, icon = "🔥")
-
-            Spacer(Modifier.height(20.dp))
-
-            Divider(color = Color.Gray.copy(alpha = 0.3f))
-
-            Spacer(Modifier.height(20.dp))
-
-            // 4. 메시지 섹션 (텍스트만 깔끔하게)
-            MessageSection(message = soundMark.message)
-
-            Spacer(Modifier.height(24.dp))
-
-            // 5. Spotify 버튼
-            SpotifyButton(
-                spotifyUrl = soundMark.track.spotifyUrl,
-                onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(soundMark.track.spotifyUrl))
-                    context.startActivity(intent)
-                }
-            )
-
-            Spacer(Modifier.height(24.dp))
-
-            // 6. 하단 리액션 버튼 바 (others)
-            BottomReactionBar(
-                    reactions = soundMark.reactions, // 실제 데이터 연결 필요
-            onReactionClick = { type -> /* TODO: 리액션 API 호출 */ }
-            )
-        }
-
-        // 7. 상단 플로팅 요소들 (장소 정보, X 버튼)
-        TopFloatingElements(
+    Column(
+        modifier = Modifier
+            .padding(20.dp) // 팝업 내부 전체 여백
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 1. [수정됨] 상단 바 섹션: 장소/추천인 정보와 X 버튼을 한 줄에 배치
+        TopBarSection(
             locationName = soundMark.location.placeName,
             authorName = soundMark.author.name,
             onBackClick = onBackClick,
             onProfileClick = { onProfileClick(soundMark.author.id) }
         )
+
+        Spacer(Modifier.height(16.dp))
+
+        // 2. 앨범 커버 (스케치처럼 큼직하게)
+        AlbumCoverSection(track = soundMark.track)
+
+        Spacer(Modifier.height(20.dp))
+
+        // 3. 곡 정보 (제목, 아티스트)
+        TrackInfoSection(track = soundMark.track)
+
+        Spacer(Modifier.height(16.dp))
+
+        // 4. 중앙 리액션 통계 (🔥 1,234)
+        CentralReactionStats(count = 1234, icon = "🔥")
+
+        Spacer(Modifier.height(20.dp))
+
+        HorizontalDivider(color = Color.Gray.copy(alpha = 0.2f), thickness = 2.dp)
+
+        Spacer(Modifier.height(20.dp))
+
+        // 5. 메시지 섹션
+        MessageSection(message = soundMark.message)
+
+        Spacer(Modifier.height(24.dp))
+
+        // 6. Spotify 버튼
+        SpotifyButton(
+            spotifyUrl = soundMark.track.spotifyUrl,
+            onClick = {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(soundMark.track.spotifyUrl))
+                context.startActivity(intent)
+            }
+        )
+
+        Spacer(Modifier.height(24.dp))
+
+        // 7. 하단 리액션 바 (others 및 이모지들)
+        BottomReactionBar(
+            reactions = soundMark.reactions,
+            onReactionClick = { type -> /* TODO: API 호출 */ }
+        )
+    }
+}
+
+/** [신규 소부품] 상단 바: 위치/추천인 + X 버튼 */
+@Composable
+private fun TopBarSection(
+    locationName: String?,
+    authorName: String,
+    onBackClick: () -> Unit,
+    onProfileClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        // 왼쪽: 장소 및 추천인 정보
+        Column(
+            modifier = Modifier
+                .weight(1f) // 남은 공간을 다 차지하여 X 버튼을 우측 끝으로 밉니다.
+                .clickable(onClick = onProfileClick)
+        ) {
+            Text(
+                text = "📍 ${locationName ?: "알 수 없는 장소"}",
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            )
+            Text(
+                text = "by $authorName",
+                style = TextStyle(
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.Gray
+                )
+            )
+        }
+
+        // 오른쪽: X 버튼 (기존 CloseButton 재사용)
+        CloseButton(onClick = onBackClick)
     }
 }
 
@@ -309,50 +350,24 @@ private fun ReactionButton(
     }
 }
 
-/** [소부품 G] 상단 플로팅 요소 (장소 정보, X 버튼) */
+/** * [공용 부품] 독립된 X 버튼
+ * 이제 이 버튼은 상단 바뿐만 아니라 어디서든 호출할 수 있습니다.
+ */
 @Composable
-private fun TopFloatingElements(
-    locationName: String?,
-    authorName: String,
-    onBackClick: () -> Unit,
-    onProfileClick: () -> Unit
+private fun CloseButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
+    IconButton(
+        onClick = onClick,
+        modifier = modifier
+            .size(32.dp)
+            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
     ) {
-        // 1. 좌측 상단: 장소 및 추천인 정보 (스케치의 나무 모양 위치)
-        Row(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f))
-                .clickable(onClick = onProfileClick)
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(4.dp))
-            Column {
-                Text(locationName ?: "알 수 없는 장소", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                Text("by $authorName", fontSize = 10.sp, color = Color.Gray)
-            }
-        }
-
-        // 2. 우측 상단: X 버튼
-        IconButton(
-            onClick = onBackClick,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .size(32.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Close",
-                modifier = Modifier.size(18.dp)
-            )
-        }
+        Icon(
+            imageVector = Icons.Default.Close,
+            contentDescription = "Close",
+            modifier = Modifier.size(18.dp)
+        )
     }
 }
