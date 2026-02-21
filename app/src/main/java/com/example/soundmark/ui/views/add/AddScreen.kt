@@ -9,17 +9,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import kotlinx.coroutines.delay
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -35,6 +36,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
+import com.example.soundmark.ui.theme.SurfaceVariantDark
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,7 +96,7 @@ fun AddScreen(
                 title = { Text("사운드 마크 추가") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -125,156 +127,108 @@ fun AddScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp)
         ) {
-            // "Select Song" Banner/Button
-            OutlinedButton(
-                onClick = {
-                    showSongBottomSheet = true
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(64.dp),
-                shape = MaterialTheme.shapes.medium,
-                contentPadding = PaddingValues(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.PlayArrow, contentDescription = null)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = uiState.selectedTrack?.title ?: "노래 선택",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = if (uiState.selectedTrack != null) 
-                                MaterialTheme.colorScheme.onSurface 
-                            else 
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Text(
-                        text = if (uiState.selectedTrack != null) "변경" else "추가",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // "Select Place" Banner/Button
-            OutlinedButton(
-                onClick = {
-                    showBottomSheet = true
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(64.dp),
-                shape = MaterialTheme.shapes.medium,
-                contentPadding = PaddingValues(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.LocationOn, contentDescription = null)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = uiState.selectedPlace?.placeName ?: "장소 선택",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = if (uiState.selectedPlace != null) 
-                                MaterialTheme.colorScheme.onSurface 
-                            else 
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Text(
-                        text = if (uiState.selectedPlace != null) "변경" else "추가",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-
-            // Other fields for adding SoundMark could go here
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "주변 추천 장소",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = uiState.message,
-                onValueChange = { viewModel.onMessageChanged(it) },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("메시지 (선택 사항)") },
-                placeholder = { Text("이 노래에 대한 추억을 적어주세요.") },
-                minLines = 3,
-                maxLines = 5,
-                shape = MaterialTheme.shapes.medium
+            // 노래 선택 섹션
+            SelectionItem(
+                label = uiState.selectedTrack?.title ?: "노래 선택",
+                isSelected = uiState.selectedTrack != null,
+                icon = Icons.Default.PlayArrow,
+                onClick = { showSongBottomSheet = true }
             )
             
-            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider(
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
 
-            if (uiState.nearbyPlaces.isNotEmpty()) {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(horizontal = 4.dp)
+            // 장소 선택 섹션
+            SelectionItem(
+                label = uiState.selectedPlace?.placeName ?: "장소 선택",
+                isSelected = uiState.selectedPlace != null,
+                icon = Icons.Default.LocationOn,
+                onClick = { showBottomSheet = true }
+            )
+
+            HorizontalDivider(
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                OutlinedTextField(
+                    value = uiState.message,
+                    onValueChange = { viewModel.onMessageChanged(it) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("메시지 (선택 사항)") },
+                    placeholder = { Text("이 노래에 대한 추억을 적어주세요.") },
+                    minLines = 3,
+                    maxLines = 5,
+                    shape = MaterialTheme.shapes.medium
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    items(uiState.nearbyPlaces.take(5)) { place ->
-                        AssistChip(
-                            onClick = { viewModel.onPlaceSelected(place) },
-                            label = { Text(place.placeName ?: "Unknown") },
-                            leadingIcon = {
-                                if (uiState.selectedPlace == place) {
-                                    Icon(
-                                        Icons.Default.Check, 
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                } else {
-                                    Icon(
-                                        Icons.Default.LocationOn, 
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
-                            },
-                            colors = AssistChipDefaults.assistChipColors(
-                                containerColor = if (uiState.selectedPlace == place) 
-                                    MaterialTheme.colorScheme.primaryContainer 
-                                else 
-                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                            )
+                    Text(
+                        text = "주변 추천 장소",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
                         )
                     }
                 }
-            } else if (!uiState.isLoading) {
-                Text(
-                    text = "주변 장소를 찾을 수 없습니다.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.outline
-                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+
+                if (uiState.nearbyPlaces.isNotEmpty()) {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp)
+                    ) {
+                        items(uiState.nearbyPlaces.take(5)) { place ->
+                            AssistChip(
+                                onClick = { viewModel.onPlaceSelected(place) },
+                                label = { Text(place.placeName ?: "Unknown") },
+                                leadingIcon = {
+                                    if (uiState.selectedPlace == place) {
+                                        Icon(
+                                            Icons.Default.Check, 
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    } else {
+                                        Icon(
+                                            Icons.Default.LocationOn, 
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                },
+                                colors = AssistChipDefaults.assistChipColors(
+                                    containerColor = if (uiState.selectedPlace == place) 
+                                        MaterialTheme.colorScheme.primaryContainer 
+                                    else 
+                                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                )
+                            )
+                        }
+                    }
+                } else if (!uiState.isLoading) {
+                    Text(
+                        text = "주변 장소를 찾을 수 없습니다.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
             }
         }
     }
@@ -325,6 +279,44 @@ fun AddScreen(
                         )
                     )
                 }
+            )
+        }
+    }
+}
+
+@Composable
+fun SelectionItem(
+    label: String,
+    isSelected: Boolean,
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        color = SurfaceVariantDark
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.outline
             )
         }
     }
