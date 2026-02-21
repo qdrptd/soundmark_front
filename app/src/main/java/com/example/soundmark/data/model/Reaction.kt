@@ -7,16 +7,17 @@ data class Reaction(
 ) {
     companion object {
         val Default = Reaction(
-            type = ReactionType.LIKE,
+            type = ReactionType.FIRE,
             count = 0,
             reacted = false
         )
     }
 }
 
-enum class ReactionType {
-    LIKE,
-    LOVE,
-    SAD,
-    COOL
+enum class ReactionType(val emoji: String, val displayName: String) {
+    FIRE("🔥", "Fire"),
+    SAD("😢", "Sad"),
+    LOVE("❤️", "Love"),
+    CLAP("👏", "Clap"),
+    OTHERS("➕", "Others") // 스케치에 있던 'others' 버튼용
 }
