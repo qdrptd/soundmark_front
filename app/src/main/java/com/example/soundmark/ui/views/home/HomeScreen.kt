@@ -1,9 +1,15 @@
 package com.example.soundmark.ui.views.home
 
+import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
+import android.graphics.Rect
+import android.graphics.Typeface
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -21,7 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.soundmark.data.model.ClusterMark
-import com.example.soundmark.data.model.SoundMark
+import com.example.soundmark.R
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -80,7 +86,7 @@ fun HomeScreen(
                     Marker(
                         state = rememberMarkerState(position = cluster.position),
                         // 여기서 다시 숫자가 들어간 아이콘을 만듭니다!
-                        icon = createClusterIcon(cluster.count, cluster.isActive),
+                        icon = createClusterIcon(context, cluster.count, cluster.isActive),
                         onClick = {
                             viewModel.onClusterClick(cluster)
                             true
@@ -90,7 +96,7 @@ fun HomeScreen(
             }
         }
 
-        // ClusterMark를 눌렀을 때 나오는 BottomoSheet
+        // ClusterMark를 눌렀을 때 나오는 BottomSheet
         if (selectedCluster != null) {
             ModalBottomSheet(
                 onDismissRequest = { viewModel.dismissBottomSheet() },
@@ -162,29 +168,79 @@ fun ClusterDetailContent(
     }
 }
 
-// 숫자가 적힌 동그란 비트맵 아이콘 생성 함수
-fun createClusterIcon(count: Int, isActive: Boolean): BitmapDescriptor {
-    val size = 100
-    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-    val canvas = Canvas(bitmap)
+fun createClusterIcon(
+    context: Context,
+    count: Int,
+    isActive: Boolean
+): BitmapDescriptor {
+    // 1. 기본 아이콘 이미지 로드 (icon1)
+    val baseBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.icon1)
 
-    val paint = Paint().apply {
-        color = if (isActive) Color.parseColor("#6200EE") else Color.parseColor("#9E9E9E")
-        isAntiAlias = true
+    // 원본 이미지 크기 조절 (필요시)
+    val iconSize = 120
+    val scaledIcon = Bitmap.createScaledBitmap(baseBitmap, iconSize, iconSize, false)
+
+    // 최종 비트맵 크기 결정 (뱃지가 아래에 추가될 공간 확보)
+    val width = iconSize
+    val height = if (count > 1) iconSize + 60 else iconSize
+    val finalBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(finalBitmap)
+
+    // 2. 이미지 Paint 설정 (비활성 상태일 때 투명도나 회색 필터 적용)
+    val iconPaint = Paint().apply {
+        if (!isActive) {
+            val colorMatrix = ColorMatrix().apply { setSaturation(0f) } // 흑백 처리
+            colorFilter = ColorMatrixColorFilter(colorMatrix)
+            alpha = 150 // 반투명
+        }
     }
 
-    // 배경 동그라미
-    canvas.drawCircle(size / 2f, size / 2f, size / 2f, paint)
+    // 중심 정렬을 위해 x좌표 계산
+    val centerX = width / 2f
+    canvas.drawBitmap(scaledIcon, centerX - (iconSize / 2f), 0f, iconPaint)
 
-    // 숫자 텍스트
-    paint.apply {
-        color = Color.WHITE
-        textSize = 40f
-        textAlign = Paint.Align.CENTER
+    // 3. Count 조건에 따른 Rect 및 텍스트 그리기
+    if (count > 1) {
+        val displayText = when {
+            count >= 50 -> "50+"
+            count >= 10 -> "10+"
+            else -> count.toString()
+        }
+
+        val rectPaint = Paint().apply {
+            color = if (isActive) Color.parseColor("#6200EE") else Color.LTGRAY
+            style = Paint.Style.FILL
+            isAntiAlias = true
+        }
+
+        val textPaint = Paint().apply {
+            color = Color.WHITE
+            textAlign = Paint.Align.CENTER
+            typeface = Typeface.DEFAULT_BOLD
+            isAntiAlias = true
+        }
+
+        // 텍스트 크기 측정 및 Rect 영역 계산
+        val textBounds = Rect()
+        textPaint.getTextBounds(displayText, 0, displayText.length, textBounds)
+        val rectWidth = textBounds.width() + 30f
+        val rectHeight = textBounds.height() + 20f
+
+        val rectLeft = centerX - (rectWidth / 2f)
+        val rectTop = iconSize.toFloat() - 10f // 아이콘과 살짝 겹치게 배치
+        val rectRight = rectLeft + rectWidth
+        val rectBottom = rectTop + rectHeight
+
+        // 둥근 사각형 뱃지 그리기
+        canvas.drawRoundRect(
+            rectLeft, rectTop, rectRight, rectBottom,
+            15f, 15f, rectPaint
+        )
+
+        // 텍스트 그리기
+        val textY = rectTop + (rectHeight / 2f) - ((textPaint.descent() + textPaint.ascent()) / 2f)
+        canvas.drawText(displayText, centerX, textY, textPaint)
     }
-    val xPos = canvas.width / 2f
-    val yPos = (canvas.height / 2f) - ((paint.descent() + paint.ascent()) / 2f)
-    canvas.drawText(count.toString(), xPos, yPos, paint)
 
-    return BitmapDescriptorFactory.fromBitmap(bitmap)
+    return BitmapDescriptorFactory.fromBitmap(finalBitmap)
 }
