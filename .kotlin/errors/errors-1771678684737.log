@@ -1,0 +1,274 @@
+kotlin version: 2.2.10
+error message: java.lang.RuntimeException: Exception while generating code for:
+FUN name:createClusterIcon visibility:public modality:FINAL returnType:com.google.android.gms.maps.model.BitmapDescriptor
+  VALUE_PARAMETER kind:Regular name:context index:0 type:android.content.Context
+  VALUE_PARAMETER kind:Regular name:count index:1 type:kotlin.Int
+  VALUE_PARAMETER kind:Regular name:isActive index:2 type:kotlin.Boolean
+  BLOCK_BODY
+    VAR name:baseIcon type:@[FlexibleNullability] android.graphics.Bitmap? [val]
+      CALL 'public open fun decodeResource (p0: @[FlexibleNullability] android.content.res.Resources?, p1: kotlin.Int): @[FlexibleNullability] android.graphics.Bitmap? declared in android.graphics.BitmapFactory' type=@[FlexibleNullability] android.graphics.Bitmap? origin=null
+        ARG p0: CALL 'public abstract fun getResources (): @[FlexibleNullability] android.content.res.Resources? declared in android.content.Context' type=@[FlexibleNullability] android.content.res.Resources? origin=GET_PROPERTY
+          ARG <this>: GET_VAR 'context: android.content.Context declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.content.Context origin=null
+        ARG p1: GET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:icon1 type:kotlin.Int visibility:public [static] declared in com.example.soundmark.R.drawable' type=kotlin.Int superQualifierSymbol=com.example.soundmark.R.drawable origin=null
+    VAR name:activeColor type:kotlin.Int [val]
+      CALL 'public open fun parseColor (p0: @[FlexibleNullability] kotlin.String?): kotlin.Int declared in android.graphics.Color' type=kotlin.Int origin=null
+        ARG p0: CONST String type=kotlin.String value="#6200EE"
+    VAR name:inactiveColor type:kotlin.Int [val]
+      CALL 'public open fun parseColor (p0: @[FlexibleNullability] kotlin.String?): kotlin.Int declared in android.graphics.Color' type=kotlin.Int origin=null
+        ARG p0: CONST String type=kotlin.String value="#9E9E9E"
+    VAR name:themeColor type:kotlin.Int [val]
+      WHEN type=kotlin.Int origin=IF
+        BRANCH
+          if: GET_VAR 'isActive: kotlin.Boolean declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Boolean origin=null
+          then: GET_VAR 'val activeColor: kotlin.Int [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Int origin=null
+        BRANCH
+          if: CONST Boolean type=kotlin.Boolean value=true
+          then: GET_VAR 'val inactiveColor: kotlin.Int [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Int origin=null
+    VAR name:width type:kotlin.Int [val]
+      CALL 'public open fun getWidth (): kotlin.Int declared in android.graphics.Bitmap' type=kotlin.Int origin=GET_PROPERTY
+        ARG <this>: GET_VAR 'val baseIcon: @[FlexibleNullability] android.graphics.Bitmap? [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=@[FlexibleNullability] android.graphics.Bitmap? origin=null
+    VAR name:height type:kotlin.Int [val]
+      CALL 'public open fun getHeight (): kotlin.Int declared in android.graphics.Bitmap' type=kotlin.Int origin=GET_PROPERTY
+        ARG <this>: GET_VAR 'val baseIcon: @[FlexibleNullability] android.graphics.Bitmap? [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=@[FlexibleNullability] android.graphics.Bitmap? origin=null
+    VAR name:outputBitmap type:android.graphics.Bitmap [val]
+      BLOCK type=android.graphics.Bitmap origin=null
+        VAR IR_TEMPORARY_VARIABLE name:tmp0 type:kotlin.Any? [val]
+          CALL 'public open fun createBitmap (p0: kotlin.Int, p1: kotlin.Int, p2: @[EnhancedNullability] android.graphics.Bitmap.Config): @[EnhancedNullability] android.graphics.Bitmap declared in android.graphics.Bitmap' type=@[EnhancedNullability] android.graphics.Bitmap origin=null
+            ARG p0: GET_VAR 'val width: kotlin.Int [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Int origin=null
+            ARG p1: GET_VAR 'val height: kotlin.Int [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Int origin=null
+            ARG p2: GET_FIELD 'FIELD FIELD_FOR_ENUM_ENTRY name:ARGB_8888 type:android.graphics.Bitmap.Config visibility:public [final,static] declared in android.graphics.Bitmap.Config' type=android.graphics.Bitmap.Config origin=null
+        CALL 'public final fun checkNotNullExpressionValue (value: kotlin.Any?, expression: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+          ARG value: GET_VAR 'val tmp0: kotlin.Any? [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Any? origin=null
+          ARG expression: CONST String type=kotlin.String value="createBitmap(...)"
+        GET_VAR 'val tmp0: kotlin.Any? [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Any? origin=null
+    VAR name:canvas type:android.graphics.Canvas [val]
+      CONSTRUCTOR_CALL 'public constructor <init> (p0: @[EnhancedNullability] android.graphics.Bitmap) declared in android.graphics.Canvas' type=android.graphics.Canvas origin=null
+        ARG p0: GET_VAR 'val outputBitmap: android.graphics.Bitmap [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.Bitmap origin=null
+    VAR name:paint type:android.graphics.Paint [val]
+      CONSTRUCTOR_CALL 'public constructor <init> (p0: kotlin.Int) declared in android.graphics.Paint' type=android.graphics.Paint origin=null
+        ARG p0: CONST Int type=kotlin.Int value=1
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+          ARG <this>: GET_VAR 'isActive: kotlin.Boolean declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Boolean origin=null
+        then: BLOCK type=kotlin.Unit origin=null
+          VAR name:cm type:android.graphics.ColorMatrix [val]
+            CALL 'public final fun apply <T> (<this>: T of kotlin.StandardKt.apply, block: @[ExtensionFunctionType] kotlin.Function1<T of kotlin.StandardKt.apply, kotlin.Unit>): T of kotlin.StandardKt.apply [inline] declared in kotlin.StandardKt' type=android.graphics.ColorMatrix origin=null
+              TYPE_ARG T: android.graphics.ColorMatrix
+              ARG <this>: CONSTRUCTOR_CALL 'public constructor <init> () declared in android.graphics.ColorMatrix' type=android.graphics.ColorMatrix origin=null
+              ARG block: BLOCK type=@[ExtensionFunctionType] kotlin.Function1<android.graphics.ColorMatrix, kotlin.Unit> origin=LAMBDA
+                COMPOSITE type=kotlin.Unit origin=null
+                FUNCTION_REFERENCE 'private final fun createClusterIcon$lambda$24 ($this$apply: android.graphics.ColorMatrix): kotlin.Unit declared in com.example.soundmark.ui.views.home.HomeScreenKt' type=@[ExtensionFunctionType] kotlin.Function1<android.graphics.ColorMatrix, kotlin.Unit> origin=INLINE_LAMBDA reflectionTarget=null
+          CALL 'public open fun setColorFilter (p0: @[FlexibleNullability] android.graphics.ColorFilter?): @[FlexibleNullability] android.graphics.ColorFilter? declared in android.graphics.Paint' type=kotlin.Unit origin=EQ
+            ARG <this>: GET_VAR 'val paint: android.graphics.Paint [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.Paint origin=null
+            ARG p0: CONSTRUCTOR_CALL 'public constructor <init> (p0: @[EnhancedNullability] android.graphics.ColorMatrix) declared in android.graphics.ColorMatrixColorFilter' type=android.graphics.ColorMatrixColorFilter origin=null
+              ARG p0: GET_VAR 'val cm: android.graphics.ColorMatrix [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.ColorMatrix origin=null
+    CALL 'public open fun drawBitmap (p0: @[EnhancedNullability] android.graphics.Bitmap, p1: kotlin.Float, p2: kotlin.Float, p3: @[EnhancedNullability] android.graphics.Paint?): kotlin.Unit declared in android.graphics.Canvas' type=kotlin.Unit origin=null
+      ARG <this>: GET_VAR 'val canvas: android.graphics.Canvas [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.Canvas origin=null
+      ARG p0: GET_VAR 'val baseIcon: @[FlexibleNullability] android.graphics.Bitmap? [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=@[FlexibleNullability] android.graphics.Bitmap? origin=null
+      ARG p1: CONST Float type=kotlin.Float value=0.0
+      ARG p2: CONST Float type=kotlin.Float value=0.0
+      ARG p3: GET_VAR 'val paint: android.graphics.Paint [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.Paint origin=null
+    CALL 'public open fun setColorFilter (p0: @[FlexibleNullability] android.graphics.ColorFilter?): @[FlexibleNullability] android.graphics.ColorFilter? declared in android.graphics.Paint' type=kotlin.Unit origin=EQ
+      ARG <this>: GET_VAR 'val paint: android.graphics.Paint [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.Paint origin=null
+      ARG p0: CONST Null type=kotlin.Nothing? value=null
+    VAR name:text type:kotlin.String [val]
+      CALL 'public final fun valueOf (value: kotlin.Int): kotlin.String declared in java.lang.String' type=kotlin.String origin=null
+        ARG value: GET_VAR 'count: kotlin.Int declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Int origin=null
+    VAR name:textPaint type:android.graphics.Paint [val]
+      CALL 'public final fun apply <T> (<this>: T of kotlin.StandardKt.apply, block: @[ExtensionFunctionType] kotlin.Function1<T of kotlin.StandardKt.apply, kotlin.Unit>): T of kotlin.StandardKt.apply [inline] declared in kotlin.StandardKt' type=android.graphics.Paint origin=null
+        TYPE_ARG T: android.graphics.Paint
+        ARG <this>: CONSTRUCTOR_CALL 'public constructor <init> (p0: kotlin.Int) declared in android.graphics.Paint' type=android.graphics.Paint origin=null
+          ARG p0: CONST Int type=kotlin.Int value=1
+        ARG block: BLOCK type=@[ExtensionFunctionType] kotlin.Function1<android.graphics.Paint, kotlin.Unit> origin=LAMBDA
+          COMPOSITE type=kotlin.Unit origin=null
+          FUNCTION_REFERENCE 'private final fun createClusterIcon$lambda$25 ($this$apply: android.graphics.Paint, $width: kotlin.Int): kotlin.Unit declared in com.example.soundmark.ui.views.home.HomeScreenKt' type=@[ExtensionFunctionType] kotlin.Function1<android.graphics.Paint, kotlin.Unit> origin=INLINE_LAMBDA reflectionTarget=null
+            ARG $width: GET_VAR 'val width: kotlin.Int [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Int origin=null
+    VAR name:textBounds type:android.graphics.Rect [val]
+      CONSTRUCTOR_CALL 'public constructor <init> () declared in android.graphics.Rect' type=android.graphics.Rect origin=null
+    CALL 'public open fun getTextBounds (p0: @[FlexibleNullability] kotlin.String?, p1: kotlin.Int, p2: kotlin.Int, p3: @[FlexibleNullability] android.graphics.Rect?): kotlin.Unit declared in android.graphics.Paint' type=kotlin.Unit origin=null
+      ARG <this>: GET_VAR 'val textPaint: android.graphics.Paint [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.Paint origin=null
+      ARG p0: GET_VAR 'val text: kotlin.String [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.String origin=null
+      ARG p1: CONST Int type=kotlin.Int value=0
+      ARG p2: CALL 'public open fun <get-length> (): kotlin.Int declared in kotlin.String' type=kotlin.Int origin=GET_PROPERTY
+        ARG <this>: GET_VAR 'val text: kotlin.String [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.String origin=null
+      ARG p3: GET_VAR 'val textBounds: android.graphics.Rect [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.Rect origin=null
+    VAR name:paddingH type:kotlin.Float [val]
+      CONST Float type=kotlin.Float value=16.0
+    VAR name:paddingV type:kotlin.Float [val]
+      CONST Float type=kotlin.Float value=8.0
+    VAR name:pillWidth type:kotlin.Float [val]
+      CALL 'public final fun plus (other: kotlin.Float): kotlin.Float [operator] declared in kotlin.Int' type=kotlin.Float origin=PLUS
+        ARG <this>: CALL 'public open fun width (): kotlin.Int declared in android.graphics.Rect' type=kotlin.Int origin=null
+          ARG <this>: GET_VAR 'val textBounds: android.graphics.Rect [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.Rect origin=null
+        ARG other: CALL 'public final fun times (other: kotlin.Int): kotlin.Float [operator] declared in kotlin.Float' type=kotlin.Float origin=MUL
+          ARG <this>: GET_VAR 'val paddingH: kotlin.Float [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Float origin=null
+          ARG other: CONST Int type=kotlin.Int value=2
+    VAR name:pillHeight type:kotlin.Float [val]
+      CALL 'public final fun plus (other: kotlin.Float): kotlin.Float [operator] declared in kotlin.Int' type=kotlin.Float origin=PLUS
+        ARG <this>: CALL 'public open fun height (): kotlin.Int declared in android.graphics.Rect' type=kotlin.Int origin=null
+          ARG <this>: GET_VAR 'val textBounds: android.graphics.Rect [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.Rect origin=null
+        ARG other: CALL 'public final fun times (other: kotlin.Int): kotlin.Float [operator] declared in kotlin.Float' type=kotlin.Float origin=MUL
+          ARG <this>: GET_VAR 'val paddingV: kotlin.Float [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Float origin=null
+          ARG other: CONST Int type=kotlin.Int value=2
+    VAR name:pillRect type:android.graphics.RectF [val]
+      CONSTRUCTOR_CALL 'public constructor <init> (p0: kotlin.Float, p1: kotlin.Float, p2: kotlin.Float, p3: kotlin.Float) declared in android.graphics.RectF' type=android.graphics.RectF origin=null
+        ARG p0: CALL 'public final fun minus (other: kotlin.Float): kotlin.Float [operator] declared in kotlin.Int' type=kotlin.Float origin=MINUS
+          ARG <this>: GET_VAR 'val width: kotlin.Int [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Int origin=null
+          ARG other: GET_VAR 'val pillWidth: kotlin.Float [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Float origin=null
+        ARG p1: CALL 'public final fun minus (other: kotlin.Float): kotlin.Float [operator] declared in kotlin.Int' type=kotlin.Float origin=MINUS
+          ARG <this>: GET_VAR 'val height: kotlin.Int [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Int origin=null
+          ARG other: GET_VAR 'val pillHeight: kotlin.Float [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Float origin=null
+        ARG p2: CALL 'public open fun toFloat (): kotlin.Float declared in kotlin.Int' type=kotlin.Float origin=null
+          ARG <this>: GET_VAR 'val width: kotlin.Int [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Int origin=null
+        ARG p3: CALL 'public open fun toFloat (): kotlin.Float declared in kotlin.Int' type=kotlin.Float origin=null
+          ARG <this>: GET_VAR 'val height: kotlin.Int [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Int origin=null
+    CALL 'public open fun setColor (p0: kotlin.Int): kotlin.Unit declared in android.graphics.Paint' type=kotlin.Unit origin=EQ
+      ARG <this>: GET_VAR 'val paint: android.graphics.Paint [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.Paint origin=null
+      ARG p0: GET_VAR 'val themeColor: kotlin.Int [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Int origin=null
+    VAR name:cornerRadius type:kotlin.Float [val]
+      CALL 'public final fun div (other: kotlin.Int): kotlin.Float [operator] declared in kotlin.Float' type=kotlin.Float origin=DIV
+        ARG <this>: GET_VAR 'val pillHeight: kotlin.Float [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Float origin=null
+        ARG other: CONST Int type=kotlin.Int value=2
+    CALL 'public open fun drawRoundRect (p0: @[EnhancedNullability] android.graphics.RectF, p1: kotlin.Float, p2: kotlin.Float, p3: @[EnhancedNullability] android.graphics.Paint): kotlin.Unit declared in android.graphics.Canvas' type=kotlin.Unit origin=null
+      ARG <this>: GET_VAR 'val canvas: android.graphics.Canvas [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.Canvas origin=null
+      ARG p0: GET_VAR 'val pillRect: android.graphics.RectF [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.RectF origin=null
+      ARG p1: GET_VAR 'val cornerRadius: kotlin.Float [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Float origin=null
+      ARG p2: GET_VAR 'val cornerRadius: kotlin.Float [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Float origin=null
+      ARG p3: GET_VAR 'val paint: android.graphics.Paint [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.Paint origin=null
+    VAR name:xPos type:kotlin.Float [val]
+      CALL 'public final fun centerX (): kotlin.Float declared in android.graphics.RectF' type=kotlin.Float origin=null
+        ARG <this>: GET_VAR 'val pillRect: android.graphics.RectF [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.RectF origin=null
+    VAR name:yPos type:kotlin.Float [val]
+      CALL 'public final fun minus (other: kotlin.Float): kotlin.Float [operator] declared in kotlin.Float' type=kotlin.Float origin=MINUS
+        ARG <this>: CALL 'public final fun centerY (): kotlin.Float declared in android.graphics.RectF' type=kotlin.Float origin=null
+          ARG <this>: GET_VAR 'val pillRect: android.graphics.RectF [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.RectF origin=null
+        ARG other: CALL 'public final fun div (other: kotlin.Float): kotlin.Float [operator] declared in kotlin.Float' type=kotlin.Float origin=DIV
+          ARG <this>: CALL 'public final fun plus (other: kotlin.Float): kotlin.Float [operator] declared in kotlin.Float' type=kotlin.Float origin=PLUS
+            ARG <this>: CALL 'public open fun descent (): kotlin.Float declared in android.graphics.Paint' type=kotlin.Float origin=null
+              ARG <this>: GET_VAR 'val textPaint: android.graphics.Paint [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.Paint origin=null
+            ARG other: CALL 'public open fun ascent (): kotlin.Float declared in android.graphics.Paint' type=kotlin.Float origin=null
+              ARG <this>: GET_VAR 'val textPaint: android.graphics.Paint [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.Paint origin=null
+          ARG other: CONST Float type=kotlin.Float value=2.0
+    CALL 'public open fun drawText (p0: @[EnhancedNullability] kotlin.String, p1: kotlin.Float, p2: kotlin.Float, p3: @[EnhancedNullability] android.graphics.Paint): kotlin.Unit declared in android.graphics.Canvas' type=kotlin.Unit origin=null
+      ARG <this>: GET_VAR 'val canvas: android.graphics.Canvas [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.Canvas origin=null
+      ARG p0: GET_VAR 'val text: kotlin.String [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.String origin=null
+      ARG p1: GET_VAR 'val xPos: kotlin.Float [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Float origin=null
+      ARG p2: GET_VAR 'val yPos: kotlin.Float [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Float origin=null
+      ARG p3: GET_VAR 'val textPaint: android.graphics.Paint [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.Paint origin=null
+    RETURN type=kotlin.Nothing from='public final fun createClusterIcon (context: android.content.Context, count: kotlin.Int, isActive: kotlin.Boolean): com.google.android.gms.maps.model.BitmapDescriptor declared in com.example.soundmark.ui.views.home.HomeScreenKt'
+      BLOCK type=com.google.android.gms.maps.model.BitmapDescriptor origin=null
+        VAR IR_TEMPORARY_VARIABLE name:tmp1 type:kotlin.Any? [val]
+          CALL 'public open fun fromBitmap (p0: @[EnhancedNullability] android.graphics.Bitmap): @[EnhancedNullability] com.google.android.gms.maps.model.BitmapDescriptor declared in com.google.android.gms.maps.model.BitmapDescriptorFactory' type=@[EnhancedNullability] com.google.android.gms.maps.model.BitmapDescriptor origin=null
+            ARG p0: GET_VAR 'val outputBitmap: android.graphics.Bitmap [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=android.graphics.Bitmap origin=null
+        CALL 'public final fun checkNotNullExpressionValue (value: kotlin.Any?, expression: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+          ARG value: GET_VAR 'val tmp1: kotlin.Any? [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Any? origin=null
+          ARG expression: CONST String type=kotlin.String value="fromBitmap(...)"
+        GET_VAR 'val tmp1: kotlin.Any? [val] declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon' type=kotlin.Any? origin=null
+
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:50)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate$default(FunctionCodegen.kt:43)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generateMethodNode(ClassCodegen.kt:422)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generateMethod(ClassCodegen.kt:439)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generate(ClassCodegen.kt:164)
+	at org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory.generateFile(JvmIrCodegenFactory.kt:419)
+	at org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory.invokeCodegen(JvmIrCodegenFactory.kt:388)
+	at org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.runCodegen$cli(KotlinToJVMBytecodeCompiler.kt:431)
+	at org.jetbrains.kotlin.cli.pipeline.jvm.JvmBackendPipelinePhase.executePhase(JvmBackendPipelinePhase.kt:95)
+	at org.jetbrains.kotlin.cli.pipeline.jvm.JvmBackendPipelinePhase.executePhase(JvmBackendPipelinePhase.kt:36)
+	at org.jetbrains.kotlin.cli.pipeline.jvm.JvmBackendPipelinePhase.executePhase(JvmBackendPipelinePhase.kt:29)
+	at org.jetbrains.kotlin.cli.pipeline.PipelinePhase.phaseBody(PipelinePhase.kt:68)
+	at org.jetbrains.kotlin.cli.pipeline.PipelinePhase.phaseBody(PipelinePhase.kt:58)
+	at org.jetbrains.kotlin.config.phaser.NamedCompilerPhase.invoke(CompilerPhase.kt:102)
+	at org.jetbrains.kotlin.backend.common.phaser.CompositePhase.invoke(PhaseBuilders.kt:22)
+	at org.jetbrains.kotlin.config.phaser.CompilerPhaseKt.invokeToplevel(CompilerPhase.kt:53)
+	at org.jetbrains.kotlin.cli.pipeline.AbstractCliPipeline.runPhasedPipeline(AbstractCliPipeline.kt:109)
+	at org.jetbrains.kotlin.cli.pipeline.AbstractCliPipeline.execute(AbstractCliPipeline.kt:68)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecutePhased(K2JVMCompiler.kt:78)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecutePhased(K2JVMCompiler.kt:44)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.execImpl(CLICompiler.kt:90)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.exec(CLICompiler.kt:352)
+	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunnerBase.runCompiler(IncrementalJvmCompilerRunnerBase.kt:175)
+	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunnerBase.runCompiler(IncrementalJvmCompilerRunnerBase.kt:38)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.doCompile(IncrementalCompilerRunner.kt:504)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compileImpl(IncrementalCompilerRunner.kt:421)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.tryCompileIncrementally$lambda$10$compile(IncrementalCompilerRunner.kt:254)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.tryCompileIncrementally(IncrementalCompilerRunner.kt:272)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compile(IncrementalCompilerRunner.kt:124)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.execIncrementalCompiler(CompileServiceImpl.kt:679)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.access$execIncrementalCompiler(CompileServiceImpl.kt:93)
+	at org.jetbrains.kotlin.daemon.CompileServiceImpl.compile(CompileServiceImpl.kt:1806)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(Unknown Source)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Unknown Source)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.rmi/sun.rmi.transport.Transport.serviceCall(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(Unknown Source)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.base/java.lang.Thread.run(Unknown Source)
+Caused by: java.lang.RuntimeException: Exception while generating code for:
+FUN INLINE_LAMBDA name:createClusterIcon$lambda$25 visibility:private modality:FINAL returnType:kotlin.Unit
+  VALUE_PARAMETER kind:ExtensionReceiver name:$this$apply index:0 type:android.graphics.Paint
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER kind:Regular name:$width index:1 type:kotlin.Int
+  BLOCK_BODY
+    VAR name:$i$a$-apply-HomeScreenKt$createClusterIcon$textPaint$1 type:kotlin.Int [val]
+      CONST Int type=kotlin.Int value=0
+    CALL 'public open fun setColor (p0: kotlin.Int): kotlin.Unit declared in android.graphics.Paint' type=kotlin.Unit origin=EQ
+      ARG <this>: GET_VAR '$this$apply: android.graphics.Paint declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon$lambda$25' type=android.graphics.Paint origin=null
+      ARG p0: CONST Int type=kotlin.Int value=-1
+    CALL 'public open fun setTextSize (p0: kotlin.Float): kotlin.Unit declared in android.graphics.Paint' type=kotlin.Unit origin=EQ
+      ARG <this>: GET_VAR '$this$apply: android.graphics.Paint declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon$lambda$25' type=android.graphics.Paint origin=null
+      ARG p0: CALL 'public final fun times (other: kotlin.Float): kotlin.Float [operator] declared in kotlin.Int' type=kotlin.Float origin=MUL
+        ARG <this>: GET_VAR '$width: kotlin.Int declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon$lambda$25' type=kotlin.Int origin=null
+        ARG other: CONST Float type=kotlin.Float value=0.2
+    SET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:fontWeight type:kotlin.Int visibility:public [final,static] declared in android.R.attr' type=kotlin.Unit superQualifierSymbol=android.R.attr origin=EQ
+      value: CONST Int type=kotlin.Int value=700
+    CALL 'public open fun setTextAlign (p0: @[FlexibleNullability] android.graphics.Paint.Align?): kotlin.Unit declared in android.graphics.Paint' type=kotlin.Unit origin=EQ
+      ARG <this>: GET_VAR '$this$apply: android.graphics.Paint declared in com.example.soundmark.ui.views.home.HomeScreenKt.createClusterIcon$lambda$25' type=android.graphics.Paint origin=null
+      ARG p0: GET_FIELD 'FIELD FIELD_FOR_ENUM_ENTRY name:CENTER type:android.graphics.Paint.Align visibility:public [final,static] declared in android.graphics.Paint.Align' type=android.graphics.Paint.Align origin=null
+
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:50)
+	at org.jetbrains.kotlin.backend.jvm.codegen.IrSourceCompilerForInline.generateLambdaBody(IrSourceCompilerForInline.kt:72)
+	at org.jetbrains.kotlin.codegen.inline.ExpressionLambda.generateLambdaBody(LambdaInfo.kt:72)
+	at org.jetbrains.kotlin.backend.jvm.codegen.IrInlineCodegen.genValueAndPut(IrInlineCodegen.kt:122)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall$handleParameter(ExpressionCodegen.kt:564)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:577)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:135)
+	at org.jetbrains.kotlin.ir.expressions.IrCall.accept(IrCall.kt:24)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitVariable(ExpressionCodegen.kt:725)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitVariable(ExpressionCodegen.kt:135)
+	at org.jetbrains.kotlin.ir.declarations.IrVariable.accept(IrVariable.kt:36)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitStatementContainer(ExpressionCodegen.kt:527)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlockBody(ExpressionCodegen.kt:532)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlockBody(ExpressionCodegen.kt:135)
+	at org.jetbrains.kotlin.ir.expressions.IrBlockBody.accept(IrBlockBody.kt:20)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.generate(ExpressionCodegen.kt:233)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.doGenerate(FunctionCodegen.kt:126)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:47)
+	... 46 more
+Caused by: java.lang.AssertionError: access of const val: SET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:fontWeight type:kotlin.Int visibility:public [final,static] declared in android.R.attr' type=kotlin.Unit superQualifierSymbol=android.R.attr origin=EQ
+  value: CONST Int type=kotlin.Int value=700
+
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitFieldAccess(ExpressionCodegen.kt:807)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitFieldAccess(ExpressionCodegen.kt:135)
+	at org.jetbrains.kotlin.ir.visitors.IrVisitor.visitSetField(IrVisitor.kt:215)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitSetField(ExpressionCodegen.kt:858)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitSetField(ExpressionCodegen.kt:135)
+	at org.jetbrains.kotlin.ir.expressions.IrSetField.accept(IrSetField.kt:21)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitStatementContainer(ExpressionCodegen.kt:527)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlockBody(ExpressionCodegen.kt:532)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlockBody(ExpressionCodegen.kt:135)
+	at org.jetbrains.kotlin.ir.expressions.IrBlockBody.accept(IrBlockBody.kt:20)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.generate(ExpressionCodegen.kt:233)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.doGenerate(FunctionCodegen.kt:126)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:47)
+	... 63 more
+
+
