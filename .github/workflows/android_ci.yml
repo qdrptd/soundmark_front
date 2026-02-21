@@ -24,7 +24,9 @@ jobs:
 
       # 중요: 빌드 전에 GitHub Secret을 사용하여 local.properties 파일을 생성합니다.
       - name: Create local.properties
-        run: echo "MAPS_API_KEY=${{ secrets.MAPS_API_KEY }}" > local.properties
+        run: |
+          echo "MAPS_API_KEY=${{ secrets.MAPS_API_KEY }}" > local.properties
+          echo "SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}" >> local.properties
 
       - name: Build Debug APK
         run: |
