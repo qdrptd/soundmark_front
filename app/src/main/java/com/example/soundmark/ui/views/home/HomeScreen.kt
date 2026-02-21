@@ -11,8 +11,11 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.view.RoundedCorner
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Lock
@@ -22,13 +25,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.soundmark.data.model.ClusterMark
 import com.example.soundmark.R
+import com.example.soundmark.ui.theme.Black
+import com.example.soundmark.ui.theme.PointGreen
+import com.example.soundmark.util.bold
+import com.example.soundmark.util.size
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -63,21 +73,9 @@ fun HomeScreen(
             viewModel.onZoomChanged(cameraPositionState.position.zoom)
         }
     }
-
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNavigateToAdd,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.background,
-                shape = androidx.compose.foundation.shape.CircleShape
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add SoundMark")
-            }
-        }
-    ) { padding ->
+    Box{
         GoogleMap(
-            modifier = Modifier.padding(padding).fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
             properties = properties,
             uiSettings = uiSettings
@@ -109,6 +107,15 @@ fun HomeScreen(
                         onNavigateToSongDetail(soundMarkId) // 상세 화면으로 이동
                     })
             }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 16.dp),
+            contentAlignment = androidx.compose.ui.Alignment.BottomCenter
+        ) {
+            AddButton(onNavigateToAdd)
         }
     }
 }
@@ -259,4 +266,46 @@ fun createClusterIcon(
     }
 
     return BitmapDescriptorFactory.fromBitmap(finalBitmap)
+}
+
+@Composable
+fun AddButton(onClick: () -> Unit){
+    FloatingActionButton(
+        modifier = Modifier.size(width = 200.dp, height = 59.dp),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(40.dp),
+        onClick = onClick,
+        containerColor = PointGreen,
+    ){
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ){
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_plant),
+                    contentDescription = null,
+                    modifier = Modifier.size(30.dp),
+                    tint = MaterialTheme.colorScheme.Black,
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "그루 심기",
+                    style = MaterialTheme.typography.labelLarge.bold().size(20)
+                )
+            }
+            Text(
+                text = "지금 듣는 노래를 추가하세요",
+                style = MaterialTheme.typography.labelLarge.size(11)
+            )
+        }
+    }
+}
+
+@Composable
+@Preview(showBackground = true)
+fun AddButtonPreview(){
+    AddButton {  }
 }

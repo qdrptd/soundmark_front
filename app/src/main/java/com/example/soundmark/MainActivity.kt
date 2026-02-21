@@ -9,8 +9,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.IndicationNodeFactory
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.interaction.InteractionSource
@@ -31,6 +34,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -129,60 +133,69 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
     val bottomBarDestinations = NavigationDestination.entries.filter { it.showInBottomBar }
     val showBottomBar = bottomBarDestinations.any { it.route == currentDestination?.route }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        bottomBar = {
-            // Show bottom bar only for main destinations
-            if (showBottomBar) {
-                Column {
-                    HorizontalDivider(
-                        color = androidx.compose.ui.graphics.Color.Black,
-                        thickness = 1.dp
-                    )
-                    NavigationBar(
-                        containerColor = MaterialTheme.colorScheme.background,
-                        contentColor = MaterialTheme.colorScheme.onBackground,
-                        tonalElevation = 0.dp
-                    ) {
-                        CompositionLocalProvider(LocalIndication provides NoIndication) {
-                            bottomBarDestinations.forEach { screen ->
-                                NavigationBarItem(
-                                    icon = {
-                                        screen.icon?.let {
-                                            Icon(it, contentDescription = screen.label)
-                                        }
-                                    },
-                                    label = { Text(screen.label) },
-                                    selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                                    colors = NavigationBarItemDefaults.colors(
-                                        selectedIconColor = MaterialTheme.colorScheme.primary,
-                                        selectedTextColor = MaterialTheme.colorScheme.primary,
-                                        unselectedIconColor = MaterialTheme.colorScheme.outline,
-                                        unselectedTextColor = MaterialTheme.colorScheme.outline,
-                                        indicatorColor = androidx.compose.ui.graphics.Color.Transparent
-                                    ),
-                                    onClick = {
-                                        val targetRoute = if (screen == NavigationDestination.PROFILE) {
-                                            "${NavigationDestination.PROFILE.name}/me"
-                                        } else {
-                                            screen.name
-                                        }
-                                        navController.navigate(targetRoute) {
-                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                saveState = true
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            bottomBar = {
+                // Show bottom bar with animation to prevent layout jumps
+                AnimatedVisibility(
+                    visible = showBottomBar,
+                    enter = expandVertically(),
+                    exit = shrinkVertically()
+                ) {
+                    Column {
+                        HorizontalDivider(
+                            color = androidx.compose.ui.graphics.Color.Black,
+                            thickness = 1.dp
+                        )
+                        NavigationBar(
+                            containerColor = MaterialTheme.colorScheme.background,
+                            contentColor = MaterialTheme.colorScheme.onBackground,
+                            tonalElevation = 0.dp
+                        ) {
+                            CompositionLocalProvider(LocalIndication provides NoIndication) {
+                                bottomBarDestinations.forEach { screen ->
+                                    NavigationBarItem(
+                                        icon = {
+                                            if (screen.icon != null) {
+                                                Icon(screen.icon, contentDescription = screen.label)
+                                            } else if (screen.iconResId != null) {
+                                                Icon(
+                                                    painter = painterResource(screen.iconResId),
+                                                    contentDescription = screen.label
+                                                )
                                             }
-                                            launchSingleTop = true
-                                            restoreState = true
+                                        },
+                                        label = { Text(screen.label) },
+                                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                                        colors = NavigationBarItemDefaults.colors(
+                                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                                            unselectedIconColor = MaterialTheme.colorScheme.outline,
+                                            unselectedTextColor = MaterialTheme.colorScheme.outline,
+                                            indicatorColor = androidx.compose.ui.graphics.Color.Transparent
+                                        ),
+                                        onClick = {
+                                            val targetRoute = if (screen == NavigationDestination.PROFILE) {
+                                                "${NavigationDestination.PROFILE.name}/me"
+                                            } else {
+                                                screen.name
+                                            }
+                                            navController.navigate(targetRoute) {
+                                                popUpTo(navController.graph.findStartDestination().id) {
+                                                    saveState = true
+                                                }
+                                                launchSingleTop = true
+                                                restoreState = true
+                                            }
                                         }
-                                    }
-                                )
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
-        }
-    ) { innerPadding ->
+        ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = startDestination,
