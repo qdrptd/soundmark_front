@@ -4,13 +4,17 @@ import com.example.soundmark.data.dto.toProfileDomain
 import com.example.soundmark.data.model.Profile
 import com.example.soundmark.data.model.User
 import com.example.soundmark.data.network.ApiService
+import com.example.soundmark.data.dto.toDomain
 import javax.inject.Inject
+import javax.inject.Provider
 import javax.inject.Singleton
 
 @Singleton
 class UserRepositoryImpl @Inject constructor(
-    private val apiService: ApiService,
+    private val apiServiceProvider: Provider<ApiService>, // Provider로 변경
 ) : UserRepository {
+
+    private val apiService get() = apiServiceProvider.get()
 
     override suspend fun getMe(): Result<User> {
         return try {

@@ -8,6 +8,7 @@ import com.example.soundmark.data.network.SpotifyAuthApi
 import com.example.soundmark.data.network.SpotifyAuthDataSource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
+import javax.inject.Provider
 import javax.inject.Singleton
 import androidx.core.content.edit
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,11 +18,12 @@ import kotlinx.coroutines.flow.asStateFlow
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
     private val spotifyAuthApi: SpotifyAuthApi,
-    private val apiService: ApiService,
+    private val apiServiceProvider: Provider<ApiService>, // Provider로 변경
     private val spotifyDataSource: SpotifyAuthDataSource,
     @ApplicationContext private val context: Context
 ) : AuthRepository {
 
+    private val apiService get() = apiServiceProvider.get() // 접근 시마다 가져옴
     private val prefs = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
 
     private val _isLoggedIn = MutableStateFlow(getAccessToken() != null)
@@ -132,6 +134,20 @@ class AuthRepositoryImpl @Inject constructor(
         return Result.success(newAccessToken)
     }.onFailure { e ->
         Log.e("AuthRepository", "refreshAccessToken failed: ${e.message}", e)
+    }
+
+    override suspend fun refreshBackendToken(): Result<String> = runCatching {
+        val refreshToken = getRefreshToken() ?: throw Exception("No Backend refresh token available")
+        Log.d("AuthRepository", "Attempting Backend token refresh via API...")
+
+        val jwtResponse = apiService.refreshBackendToken(mapOf("refresh_token" to refreshToken))
+        
+        saveAccessToken(jwtResponse.accessToken)
+        jwtResponse.refreshToken?.let { saveRefreshToken(it) }
+
+        return Result.success(jwtResponse.accessToken)
+    }.onFailure { e ->
+        Log.e("AuthRepository", "refreshBackendToken failed: ${e.message}", e)
     }
 
     override fun saveCodeVerifier(verifier: String){

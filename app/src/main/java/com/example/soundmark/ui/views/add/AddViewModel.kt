@@ -2,9 +2,12 @@ package com.example.soundmark.ui.views.add
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.soundmark.data.dto.CreateRecommendationRequestDto
+import com.example.soundmark.data.dto.PlaceDto
 import com.example.soundmark.data.model.GeoLocation
 import com.example.soundmark.data.model.Track
 import com.example.soundmark.data.repository.map.MapRepository
+import com.example.soundmark.data.repository.soundmark.SoundMarkRepository
 import com.example.soundmark.util.LocationService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
@@ -17,6 +20,8 @@ import com.example.soundmark.data.repository.spotify.SpotifyRepository
 data class AddUiState(
     val isLoading: Boolean = false,
     val isSearching: Boolean = false,
+    val isPosting: Boolean = false,
+    val isPostSuccess: Boolean = false,
     val currentLocation: GeoLocation? = null,
     val nearbyPlaces: List<GeoLocation> = emptyList(),
     val searchedTracks: List<Track> = emptyList(),
@@ -24,7 +29,8 @@ data class AddUiState(
     val selectedTrack: Track? = null,
     val error: String? = null,
     val permissionDenied: Boolean = false,
-    val searchQuery: String = ""
+    val searchQuery: String = "",
+    val message: String = ""
 )
 
 @OptIn(FlowPreview::class)
@@ -32,6 +38,7 @@ data class AddUiState(
 class AddViewModel @Inject constructor(
     private val mapRepository: MapRepository,
     private val spotifyRepository: SpotifyRepository,
+    private val soundMarkRepository: SoundMarkRepository,
     private val locationService: LocationService
 ) : ViewModel() {
 
@@ -68,6 +75,10 @@ class AddViewModel @Inject constructor(
         _uiState.update { it.copy(searchQuery = query) }
     }
 
+    fun onMessageChanged(message: String) {
+        _uiState.update { it.copy(message = message) }
+    }
+
     private suspend fun performSearch(query: String) {
         _uiState.update { it.copy(isSearching = true) }
         val result = spotifyRepository.searchTracks(query)
@@ -75,6 +86,42 @@ class AddViewModel @Inject constructor(
             _uiState.update { it.copy(searchedTracks = tracks, isSearching = false) }
         }.onFailure { e ->
             _uiState.update { it.copy(isSearching = false, error = "곡 검색 실패: ${e.message}") }
+        }
+    }
+
+    fun postSoundMark() {
+        val currentState = _uiState.value
+        val track = currentState.selectedTrack
+        val place = currentState.selectedPlace
+
+        if (track == null || place == null) {
+            _uiState.update { it.copy(error = "노래와 장소를 모두 선택해주세요.") }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isPosting = true, error = null) }
+            
+            val request = CreateRecommendationRequestDto(
+                lat = place.latitude,
+                lng = place.longitude,
+                place = PlaceDto(
+                    source = "google",
+                    googlePlaceId = place.placeId ?: "",
+                    placeName = place.placeName ?: "Unknown Place",
+                    address = place.address ?: "Unknown Address"
+                ),
+                spotifyTrackId = track.id,
+                message = currentState.message
+            )
+
+            soundMarkRepository.postRecommendation(request)
+                .onSuccess {
+                    _uiState.update { it.copy(isPosting = false, isPostSuccess = true) }
+                }
+                .onFailure { e ->
+                    _uiState.update { it.copy(isPosting = false, error = "저장 실패: ${e.message}") }
+                }
         }
     }
 

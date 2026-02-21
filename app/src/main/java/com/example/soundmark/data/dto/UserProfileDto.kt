@@ -69,7 +69,8 @@ fun ProfileRecommendationDto.toDomain(author: User): SoundMark = SoundMark(
         artist = this.artist,
         albumCoverUrl = this.albumCover,
         spotifyUrl = this.link,
-        previewUrl = this.previewUrl
+        previewUrl = this.previewUrl,
+        id = ""
     ),
     author = author,
     location = GeoLocation(
