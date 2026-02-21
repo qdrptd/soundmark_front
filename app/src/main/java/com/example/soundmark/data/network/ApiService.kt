@@ -11,13 +11,9 @@ import com.example.soundmark.data.dto.UserProfileDto
 import com.example.soundmark.data.dto.UserResponse
 import com.example.soundmark.data.model.Profile
 import retrofit2.Response
-import retrofit2.http.Field
-import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
-import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Query
-import com.example.soundmark.data.model.User
 import retrofit2.http.*
 
 interface ApiService {
@@ -65,8 +61,8 @@ interface ApiService {
     ): Response<RecommendationDetailDto>
 
     // 3. 리액션 전송 (추가된 부분)
-    @POST("api/v1/recommendations/{recommendation_id}/reactions")
-    suspend fun postReaction(
+    @PUT("api/v1/recommendations/{recommendation_id}/reactions")
+    suspend fun putReaction(
         @Path("recommendation_id") id: String,
         @Body body: Map<String, String> // { "reaction_type": "🔥" }
     ): Response<Unit>

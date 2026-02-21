@@ -144,7 +144,8 @@ class MusicDetailViewModel @Inject constructor(
             )
 
             viewModelScope.launch {
-                repository.postReaction(mark.id, type.id)
+                // 서버에는 "fire" 같은 ID가 아닌 "🔥" 같은 이모지 문자열을 보냅니다.
+                repository.postReaction(mark.id, type.emoji)
             }
         }
     }

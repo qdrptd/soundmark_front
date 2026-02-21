@@ -2,7 +2,6 @@ package com.example.soundmark.data.repository.songDetail
 
 import com.example.soundmark.data.dto.ErrorResponseDto
 import com.example.soundmark.data.dto.toDomain
-import com.example.soundmark.data.mock.MockDataSource
 import com.example.soundmark.data.model.SoundMark
 import com.example.soundmark.data.network.ApiService
 import com.google.gson.Gson
@@ -38,6 +37,17 @@ class SoundMarkDetailRepositoryImpl @Inject constructor(
     }
 
     override suspend fun postReaction(id: String, reactionType: String): Result<Unit> {
-        return Result.success(Unit)
+        return try {
+            val body = mapOf("emoji" to reactionType)
+            val response = apiService.putReaction(id, body)
+            
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("리액션 전송 실패 (코드: ${response.code()})"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }
