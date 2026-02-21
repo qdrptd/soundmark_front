@@ -31,6 +31,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -147,12 +148,16 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
                         CompositionLocalProvider(LocalIndication provides NoIndication) {
                             bottomBarDestinations.forEach { screen ->
                                 NavigationBarItem(
-                                    icon = {
-                                        screen.icon?.let {
-                                            Icon(it, contentDescription = screen.label)
-                                        }
-                                    },
-                                    label = { Text(screen.label) },
+                                                                    icon = {
+                                                                        if (screen.icon != null) {
+                                                                            Icon(screen.icon, contentDescription = screen.label)
+                                                                        } else if (screen.iconResId != null) {
+                                                                            Icon(
+                                                                                painter = painterResource(screen.iconResId),
+                                                                                contentDescription = screen.label
+                                                                            )
+                                                                        }
+                                                                    },                                    label = { Text(screen.label) },
                                     selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                                     colors = NavigationBarItemDefaults.colors(
                                         selectedIconColor = MaterialTheme.colorScheme.primary,
