@@ -25,6 +25,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -32,6 +33,9 @@ import com.example.soundmark.data.model.Reaction
 import com.example.soundmark.data.model.ReactionType
 import com.example.soundmark.data.model.SoundMark
 import com.example.soundmark.data.model.Track
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun MusicDetailScreen(
@@ -120,13 +124,21 @@ private fun MusicDetailContent(
     ) {
         // 1. [수정됨] 상단 바 섹션: 장소/추천인 정보와 X 버튼을 한 줄에 배치
         TopBarSection(
-            locationName = soundMark.location.placeName,
+            reactions = soundMark.reactions,
             authorName = soundMark.author.name,
             onBackClick = onBackClick,
             onProfileClick = { onProfileClick(soundMark.author.id) }
         )
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(12.dp))
+
+        LocationAndDateSection(
+            locationName = soundMark.location.placeName,
+            createdAt = soundMark.createdAt
+        )
+
+        Spacer(Modifier.height(12.dp))
+
 
         // 2. 앨범 커버 (스케치처럼 큼직하게)
         AlbumCoverSection(track = soundMark.track)
@@ -175,42 +187,92 @@ private fun MusicDetailContent(
 /** [신규 소부품] 상단 바: 위치/추천인 + X 버튼 */
 @Composable
 private fun TopBarSection(
-    locationName: String?,
+    reactions: List<Reaction>,
     authorName: String,
     onBackClick: () -> Unit,
     onProfileClick: () -> Unit
 ) {
-    Row(
+    // 1. 전체 리액션 수 합계 계산
+    val totalCount = reactions.sumOf { it.count }
+
+    // 2. 반응 수에 따른 성장 단계 이모지 결정
+    val growthEmoji = when {
+        totalCount < 10 -> "🌱"    // 10개 미만: 새싹
+        totalCount < 100 -> "🌿"   // 100개 미만: 묘목
+        totalCount < 1000 -> "🌳"  // 1000개 미만: 나무
+        else -> "🌲"               // 그 이상: 숲
+    }
+
+    Box(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        contentAlignment = Alignment.Center
     ) {
-        // 왼쪽: 장소 및 추천인 정보
-        Column(
-            modifier = Modifier
-                .weight(1f) // 남은 공간을 다 차지하여 X 버튼을 우측 끝으로 밉니다.
-                .clickable(onClick = onProfileClick)
+        // [좌측] 성장 단계 아이콘 + 전체 숫자
+        Row(
+            modifier = Modifier.align(Alignment.CenterStart),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "📍 ${locationName ?: "알 수 없는 장소"}",
-                style = TextStyle(
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
+            // 원형 안에 단계별 이모지 하나만 표시
+            ReactionCircle(
+                emoji = growthEmoji,
+                size = 48.dp,
+                modifier = Modifier
             )
+        }
+
+        // [중앙] 추천인 정보 (완벽한 중앙 정렬)
+        TextButton(
+            onClick = onProfileClick,
+            contentPadding = PaddingValues(0.dp),
+            modifier = Modifier.align(Alignment.Center)
+        ) {
             Text(
                 text = "by $authorName",
                 style = TextStyle(
-                    fontSize = 11.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.Gray
                 )
             )
         }
 
-        // 오른쪽: X 버튼 (기존 CloseButton 재사용)
-        CloseButton(onClick = onBackClick)
+        // [우측] 닫기 버튼
+        Box(modifier = Modifier.align(Alignment.CenterEnd)) {
+            CloseButton(onClick = onBackClick)
+        }
+    }
+}
+
+@Composable
+private fun LocationAndDateSection(
+    locationName: String?,
+    createdAt: Long
+) {
+    val dateFormat = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
+    val dateString = dateFormat.format(Date(createdAt))
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        // 왼쪽: 장소
+        Text(
+            text = "📍 ${locationName ?: "알 수 없는 장소"}",
+            style = TextStyle(
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+        )
+        // 오른쪽: 등록 시간
+        Text(
+            text = dateString,
+            style = TextStyle(
+                fontSize = 11.sp,
+                color = Color.Gray
+            )
+        )
     }
 }
 
@@ -297,11 +359,12 @@ private fun TopReactionsSummary(reactions: List<Reaction>) {
 @Composable
 private fun ReactionCircle(
     emoji: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    size: Dp = 30.dp,
 ) {
     Surface(
         modifier = modifier
-            .size(30.dp), // 원의 크기
+            .size(size), // 원의 크기
         shape = CircleShape,
         color = MaterialTheme.colorScheme.surface, // 원 내부 배경색
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.surfaceVariant), // 테두리
@@ -346,7 +409,10 @@ private fun SpotifyButton(spotifyUrl: String, onClick: () -> Unit) {
             contentColor = Color.White
         )
     ) {
-        Icon(Icons.Default.PlayArrow, contentDescription = null)
+        Icon(Icons.Default.PlayArrow,
+            //painter = painterResource(id = R.drawable.ic_spotify_logo)
+            contentDescription = null
+        )
         Spacer(Modifier.width(8.dp))
         Text("Spotify에서 듣기", fontSize = 16.sp, fontWeight = FontWeight.Bold)
     }
@@ -360,36 +426,36 @@ private fun BottomReactionBar(
     onOthersClick: () -> Unit,
     onReactionClick: (ReactionType) -> Unit
 ) {
+    val displayReactions = remember<List<ReactionType>>(reactions) {
+        val activeReactions = reactions.sortedByDescending { it.count }.map { it.type }
+        val defaultTypes = ReactionType.MAIN_TYPES
+
+        // 두 리스트를 합친 뒤 id 기준으로 중복을 제거하고 상위 4개를 가져옵니다.
+        (activeReactions + defaultTypes).distinctBy { it.id }.take(4)
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween // 5개의 버튼(others + 4개)을 균등하게 배치
     ) {
-        // 1. Others 버튼 (항상 맨 앞에 배치하거나 스케치 위치에 고정)
+        // 1. Others 버튼 (고정)
         ReactionButton(
             icon = ReactionType.OTHERS.emoji,
-            label = "others",
             isSelected = false,
             onClick = onOthersClick
         )
 
-        Spacer(modifier = Modifier.width(16.dp))
-
-        // 2. 동적 리액션 리스트
-        // 데이터가 10개든 20개든 가로로 쭉 나열됩니다.
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.weight(1f)
-        ) {
-            items(reactions) { reaction ->
-                ReactionButton(
-                    icon = reaction.type.emoji,
-                    label = if (reaction.count > 0) "${reaction.count}" else "",
-                    isSelected = reaction.isReactedByMe,
-                    onClick = { onReactionClick(reaction.type) }
-                )
-            }
+        // 2. 고정된 4개의 리액션 버튼
+        displayReactions.forEach { type ->
+            val reactionData = reactions.find { it.type.id == type.id }
+            ReactionButton(
+                icon = type.emoji,
+                // 내가 이 리액션을 선택했는지 여부 확인
+                isSelected = reactionData?.isReactedByMe ?: false,
+                onClick = { onReactionClick(type) }
+            )
         }
     }
 }
@@ -398,27 +464,25 @@ private fun BottomReactionBar(
 @Composable
 private fun ReactionButton(
     icon: String,
-    label: String = "",
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .size(60.dp) // 스케치처럼 큼직하게
-                .clip(CircleShape)
-                .background(
-                    if (isSelected) MaterialTheme.colorScheme.primaryContainer
-                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                )
-                .clickable(onClick = onClick),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = icon, fontSize = 28.sp)
-        }
-        if (label.isNotEmpty()) {
-            Text(text = label, style = TextStyle(fontSize = 12.sp, color = Color.Gray))
-        }
+    // 숫자를 표시하던 Text 부분을 삭제하여 훨씬 깔끔해졌습니다.
+    Box(
+        modifier = Modifier
+            .size(60.dp) // 스케치처럼 큼직한 원형 유지
+            .clip(CircleShape)
+            .background(
+                if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = icon,
+            fontSize = 28.sp // 원형 안에서 이모지가 돋보이도록 크기 유지
+        )
     }
 }
 

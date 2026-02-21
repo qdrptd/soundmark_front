@@ -16,6 +16,12 @@ data class ReactionType(
     val displayName: String
 ) {
     companion object {
+        val MAIN_TYPES = listOf(
+            ReactionType("fire", "🔥", "Fire"),
+            ReactionType("sad", "😢", "Sad"),
+            ReactionType("love", "❤️", "Love"),
+            ReactionType("clap", "👏", "Clap")
+        )
         // 사용자가 이모지 키보드에서 아무거나 골랐을 때 객체를 생성해주는 헬퍼 함수
         fun fromEmoji(emoji: String): ReactionType {
             return ReactionType(
