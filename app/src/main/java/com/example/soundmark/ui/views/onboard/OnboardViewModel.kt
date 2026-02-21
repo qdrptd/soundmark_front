@@ -12,6 +12,8 @@ import com.example.soundmark.data.repository.user.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -28,9 +30,16 @@ class OnboardViewModel @Inject constructor(
     private val redirectUri = "soundmark://callback"
 
     init {
-        authRepository.getAccessToken()?.let {
-            _loginState.value = LoginState.Success(it)
-        }
+        authRepository.isLoggedIn
+            .onEach { loggedIn ->
+                if (loggedIn) {
+                    val token = authRepository.getAccessToken() ?: ""
+                    _loginState.value = LoginState.Success(token)
+                } else {
+                    _loginState.value = LoginState.Idle
+                }
+            }
+            .launchIn(viewModelScope)
     }
 
     /**

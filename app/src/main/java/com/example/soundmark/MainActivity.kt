@@ -202,6 +202,13 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
             navController.navigate(NavigationDestination.HOME.name) {
                 popUpTo(NavigationDestination.ONBOARD.name) { inclusive = true }
             }
+        } else if (loginState is LoginState.Idle) {
+            // Handle session expiration/logout: navigate back to Onboard
+            if (currentDestination?.route != NavigationDestination.ONBOARD.name) {
+                navController.navigate(NavigationDestination.ONBOARD.name) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
         }
     }
 }

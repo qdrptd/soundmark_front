@@ -1,7 +1,10 @@
 package com.example.soundmark.di
 
 import com.example.soundmark.data.network.ApiService
+import com.example.soundmark.data.network.AuthInterceptor
+import com.example.soundmark.data.network.SpotifyApi
 import com.example.soundmark.data.network.SpotifyAuthApi
+import com.example.soundmark.data.network.TokenAuthenticator
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -13,6 +16,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Named
 import javax.inject.Singleton
+
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
@@ -45,6 +49,23 @@ object NetworkModule {
             .writeTimeout(30, TimeUnit.SECONDS)
             .build()
 
+    @Provides
+    @Singleton
+    @Named("authenticatedOkHttpClient")
+    fun provideAuthenticatedOkHttpClient(
+        loggingInterceptor: HttpLoggingInterceptor,
+        authInterceptor: AuthInterceptor,
+        tokenAuthenticator: TokenAuthenticator
+    ): OkHttpClient =
+        OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
+            .authenticator(tokenAuthenticator)
+            .addInterceptor(loggingInterceptor)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+
     // =========================
     // Retrofit — Spotify TOKEN (accounts)
     // =========================
@@ -69,7 +90,7 @@ object NetworkModule {
     @Singleton
     @Named("spotifyApi")
     fun provideSpotifyApiRetrofit(
-        client: OkHttpClient
+        @Named("authenticatedOkHttpClient") client: OkHttpClient
     ): Retrofit =
         Retrofit.Builder()
             .baseUrl(SPOTIFY_API_BASE_URL)
@@ -85,7 +106,7 @@ object NetworkModule {
     @Singleton
     @Named("backend")
     fun provideBackendRetrofit(
-        client: OkHttpClient
+        @Named("authenticatedOkHttpClient") client: OkHttpClient
     ): Retrofit =
         Retrofit.Builder()
             .baseUrl(BACKEND_BASE_URL)
@@ -111,10 +132,17 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideSpotifyApi(
+    fun provideSpotifyAuthApi(
         @Named("spotifyAccounts") retrofit: Retrofit
     ): SpotifyAuthApi =
         retrofit.create(SpotifyAuthApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideSpotifyApi(
+        @Named("spotifyApi") retrofit: Retrofit
+    ): SpotifyApi =
+        retrofit.create(SpotifyApi::class.java)
 
     @Provides
     @Singleton
