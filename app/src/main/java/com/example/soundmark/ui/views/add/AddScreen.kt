@@ -35,8 +35,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
+import com.example.soundmark.R
 import com.example.soundmark.ui.theme.SurfaceVariantDark
+import com.example.soundmark.ui.theme.SurfaceVariantDarker
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -132,7 +135,7 @@ fun AddScreen(
             SelectionItem(
                 label = uiState.selectedTrack?.title ?: "노래 선택",
                 isSelected = uiState.selectedTrack != null,
-                icon = Icons.Default.PlayArrow,
+                icon = ImageVector.vectorResource(R.drawable.ic_music),
                 onClick = { showSongBottomSheet = true }
             )
             
@@ -145,7 +148,7 @@ fun AddScreen(
             SelectionItem(
                 label = uiState.selectedPlace?.placeName ?: "장소 선택",
                 isSelected = uiState.selectedPlace != null,
-                icon = Icons.Default.LocationOn,
+                icon = ImageVector.vectorResource(R.drawable.ic_location),
                 onClick = { showBottomSheet = true }
             )
 
@@ -294,7 +297,7 @@ fun SelectionItem(
     Surface(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        color = SurfaceVariantDark
+        color = SurfaceVariantDarker
     ) {
         Row(
             modifier = Modifier
