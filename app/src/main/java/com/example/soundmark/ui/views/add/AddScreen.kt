@@ -29,6 +29,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.soundmark.data.model.GeoLocation
 import com.example.soundmark.data.model.Track
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -283,6 +290,7 @@ fun SongSelectionContent(
     onTrackSelected: (Track) -> Unit
 ) {
     val listState = rememberLazyListState()
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     val nestedScrollConnection = remember(listState) {
         object : NestedScrollConnection {
@@ -313,20 +321,35 @@ fun SongSelectionContent(
             onValueChange = { onSearch(it) },
             modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
             placeholder = { Text("곡 제목, 아티스트 검색") },
-            leadingIcon = { 
-                if (uiState.isSearching) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-                } else {
-                    Icon(Icons.Default.PlayArrow, contentDescription = null)
-                }
-            },
             trailingIcon = {
-                if (uiState.searchQuery.isNotEmpty()) {
-                    IconButton(onClick = { onSearch("") }) {
-                        Icon(Icons.Default.Check, contentDescription = "Clear")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (uiState.searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { onSearch("") }) {
+                            Icon(Icons.Default.Close, contentDescription = "Clear")
+                        }
+                    }
+                    if (uiState.isSearching) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                        Spacer(modifier = Modifier.width(12.dp))
+                    } else {
+                        IconButton(onClick = { 
+                            onSearch(uiState.searchQuery)
+                            keyboardController?.hide()
+                        }) {
+                            Icon(Icons.Default.Search, contentDescription = "Search")
+                        }
                     }
                 }
             },
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Search
+            ),
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    onSearch(uiState.searchQuery)
+                    keyboardController?.hide()
+                }
+            ),
             singleLine = true,
             shape = MaterialTheme.shapes.medium
         )
