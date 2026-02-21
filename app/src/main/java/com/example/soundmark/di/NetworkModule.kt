@@ -1,6 +1,7 @@
 package com.example.soundmark.di
 
 import com.example.soundmark.data.network.ApiService
+import com.example.soundmark.data.network.SpotifyApi
 import com.example.soundmark.data.network.SpotifyAuthApi
 import dagger.Module
 import dagger.Provides
@@ -111,10 +112,17 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideSpotifyApi(
+    fun provideSpotifyAuthApi(
         @Named("spotifyAccounts") retrofit: Retrofit
     ): SpotifyAuthApi =
         retrofit.create(SpotifyAuthApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideSpotifyApi(
+        @Named("spotifyApi") retrofit: Retrofit
+    ): SpotifyApi =
+        retrofit.create(SpotifyApi::class.java)
 
     @Provides
     @Singleton

@@ -13,10 +13,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import com.example.soundmark.data.network.SpotifyApi
+
 data class AddUiState(
     val isLoading: Boolean = false,
+    val isSearching: Boolean = false,
     val currentLocation: GeoLocation? = null,
     val nearbyPlaces: List<GeoLocation> = emptyList(),
+    val searchedTracks: List<Track> = emptyList(),
     val selectedPlace: GeoLocation? = null,
     val selectedTrack: Track? = null,
     val error: String? = null,
@@ -26,6 +30,7 @@ data class AddUiState(
 @HiltViewModel
 class AddViewModel @Inject constructor(
     private val mapRepository: MapRepository,
+    private val spotifyApi: SpotifyApi,
     private val locationService: LocationService
 ) : ViewModel() {
 
@@ -38,6 +43,32 @@ class AddViewModel @Inject constructor(
 
     fun onTrackSelected(track: Track) {
         _uiState.value = _uiState.value.copy(selectedTrack = track)
+    }
+
+    fun searchTracks(query: String) {
+        if (query.isBlank()) {
+            _uiState.value = _uiState.value.copy(searchedTracks = emptyList())
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isSearching = true)
+            try {
+                val response = spotifyApi.searchTracks(query)
+                val tracks = response.tracks.items.map { dto ->
+                    Track(
+                        title = dto.name,
+                        artist = dto.artists.firstOrNull()?.name ?: "Unknown",
+                        albumCoverUrl = dto.album.images.firstOrNull()?.url ?: "",
+                        spotifyUrl = dto.externalUrls["spotify"] ?: "",
+                        previewUrl = dto.previewUrl
+                    )
+                }
+                _uiState.value = _uiState.value.copy(searchedTracks = tracks, isSearching = false)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(isSearching = false, error = "곡 검색 실패: ${e.message}")
+            }
+        }
     }
 
     fun fetchNearbyPlacesWithGPS() {

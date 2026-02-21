@@ -267,23 +267,21 @@ fun AddScreen(
 fun SongSelectionContent(
     onTrackSelected: (Track) -> Unit
 ) {
-    val tracks = MockDataSource.mockTracks
+    var searchQuery by remember { mutableStateOf("") }
+    val tracks = remember { MockDataSource.mockTracks }
     val listState = rememberLazyListState()
 
-    val nestedScrollConnection = remember {
+    // Precise connection to prevent sheet drag only when necessary
+    val nestedScrollConnection = remember(listState) {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                val isAtTop = listState.firstVisibleItemIndex == 0 && 
-                             listState.firstVisibleItemScrollOffset == 0
+                val isAtTop = !listState.canScrollBackward
                 return if (available.y > 0 && isAtTop) available else Offset.Zero
             }
 
-            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
-                return if (available.y > 0) available else Offset.Zero
-            }
-
-            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-                return if (available.y > 0) available else Velocity.Zero
+            override suspend fun onPreFling(available: Velocity): Velocity {
+                val isAtTop = !listState.canScrollBackward
+                return if (available.y > 0 && isAtTop) available else Velocity.Zero
             }
         }
     }
@@ -301,6 +299,26 @@ fun SongSelectionContent(
             modifier = Modifier.padding(vertical = 16.dp)
         )
 
+        // Search Bar
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            placeholder = { Text("곡 제목, 아티스트 검색") },
+            leadingIcon = { Icon(Icons.Default.PlayArrow, contentDescription = null) }, // Using PlayArrow for music context
+            trailingIcon = {
+                if (searchQuery.isNotEmpty()) {
+                    IconButton(onClick = { searchQuery = "" }) {
+                        Icon(Icons.Default.Check, contentDescription = "Clear")
+                    }
+                }
+            },
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium
+        )
+
         LazyColumn(
             state = listState,
             modifier = Modifier
@@ -309,14 +327,22 @@ fun SongSelectionContent(
                 .nestedScroll(nestedScrollConnection),
             contentPadding = PaddingValues(vertical = 8.dp)
         ) {
-            items(tracks) { track ->
+            val filteredTracks = if (searchQuery.isEmpty()) tracks else {
+                tracks.filter { 
+                    it.title.contains(searchQuery, ignoreCase = true) || 
+                    it.artist.contains(searchQuery, ignoreCase = true) 
+                }
+            }
+
+            items(filteredTracks) { track ->
                 ListItem(
                     headlineContent = { Text(track.title) },
                     supportingContent = { Text(track.artist) },
                     leadingContent = { Icon(Icons.Default.PlayArrow, contentDescription = null) },
                     modifier = Modifier
-                        .padding(vertical = 4.dp)
+                        .fillMaxWidth()
                         .clickable { onTrackSelected(track) }
+                        .padding(vertical = 4.dp)
                 )
             }
         }
@@ -338,9 +364,9 @@ fun PlaceSelectionContent(
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                // When pulling down (y > 0) at the very top of the list, 
+                // When pulling down (y > 0) at the very top of the list,
                 // we consume the delta here to prevent the sheet from starting to drag.
-                val isAtTop = listState.firstVisibleItemIndex == 0 && 
+                val isAtTop = listState.firstVisibleItemIndex == 0 &&
                              listState.firstVisibleItemScrollOffset == 0
                 return if (available.y > 0 && isAtTop) {
                     available
