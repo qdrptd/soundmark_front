@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -36,6 +37,7 @@ import com.example.soundmark.data.model.Track
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.example.soundmark.R
 
 @Composable
 fun MusicDetailScreen(
@@ -409,9 +411,11 @@ private fun SpotifyButton(spotifyUrl: String, onClick: () -> Unit) {
             contentColor = Color.White
         )
     ) {
-        Icon(Icons.Default.PlayArrow,
-            //painter = painterResource(id = R.drawable.ic_spotify_logo)
-            contentDescription = null
+        Icon(//Icons.Default.PlayArrow,
+            painter = painterResource(id = R.drawable.spotify_icon),
+            contentDescription = "Spotify Logo",
+            modifier = Modifier.size(24.dp), // 로고 크기 조절
+            tint = Color.Unspecified
         )
         Spacer(Modifier.width(8.dp))
         Text("Spotify에서 듣기", fontSize = 16.sp, fontWeight = FontWeight.Bold)
