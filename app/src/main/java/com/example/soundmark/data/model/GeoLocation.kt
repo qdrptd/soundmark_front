@@ -7,8 +7,8 @@ data class GeoLocation(
 ) {
     companion object {
         val Default = GeoLocation(
-            latitude = 35.1823,
-            longitude = 123.4238,
+            latitude = 37.5451,
+            longitude = 127.0572,
             placeName = "엘리스랩 성수",
         )
     }

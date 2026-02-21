@@ -1,11 +1,16 @@
 package com.example.soundmark
 
+import android.Manifest
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -26,6 +31,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.soundmark.ui.theme.SoundMarkTheme
+import com.example.soundmark.ui.views.add.AddScreen
 import dagger.hilt.android.AndroidEntryPoint
 import com.example.soundmark.ui.views.home.HomeScreen
 import com.example.soundmark.ui.views.home.HomeViewModel
@@ -44,6 +50,25 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         handleIntent(intent)
         setContent {
+            val locationPermissionLauncher = rememberLauncherForActivityResult(
+                ActivityResultContracts.RequestMultiplePermissions()
+            ) { permissions ->
+                val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                        permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+                if (!granted) {
+                    finish() // 권한 거부 시 앱 종료
+                }
+            }
+
+            LaunchedEffect(Unit) {
+                locationPermissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+            }
+
             SoundMarkTheme {
                 SoundMarkApp(onboardViewModel)
             }
@@ -107,17 +132,27 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
         NavHost(
             navController = navController,
             startDestination = NavigationDestination.ONBOARD.name,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None }
         ) {
             composable(NavigationDestination.ONBOARD.name) {
                 OnboardScreen(viewModel = onboardViewModel)
             }
             composable(NavigationDestination.HOME.name) {
                 val homeViewModel: HomeViewModel = hiltViewModel()
-                HomeScreen(viewModel = homeViewModel)
+                HomeScreen(
+                    viewModel = homeViewModel,
+                    onNavigateToAdd = { navController.navigate(NavigationDestination.SONG_ADD.name) }
+                )
             }
             composable(NavigationDestination.SONG_LIST.name) {
                 SongListScreen()
+            }
+            composable(NavigationDestination.SONG_ADD.name) {
+                AddScreen(onBack = { navController.popBackStack() })
             }
             composable(NavigationDestination.PROFILE.name) {
                 ProfileRoute()

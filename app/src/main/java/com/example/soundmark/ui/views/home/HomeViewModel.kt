@@ -7,6 +7,7 @@ import com.example.soundmark.data.model.GeoLocation
 import com.example.soundmark.data.model.MapPin
 import com.example.soundmark.data.model.SoundMark
 import com.example.soundmark.data.repository.profile.MarkRepository
+import com.example.soundmark.util.LocationService
 import com.example.soundmark.util.MarkerClusteringUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val markRepository: MarkRepository
+    private val markRepository: MarkRepository,
+    private val locationService: LocationService
 ) : ViewModel() {
 
     private val _rawPins = MutableStateFlow<List<MapPin>>(emptyList())
@@ -38,7 +40,10 @@ class HomeViewModel @Inject constructor(
     val selectedCluster = _selectedCluster.asStateFlow()
 
     init {
-        loadNearbyPins(GeoLocation.Default)
+        viewModelScope.launch {
+            val location = locationService.getCurrentLocation()
+            loadNearbyPins(location ?: GeoLocation.Default)
+        }
     }
 
     fun loadNearbyPins(location: GeoLocation) {
