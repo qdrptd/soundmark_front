@@ -25,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color as ComposeColor
@@ -44,6 +45,7 @@ import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,7 +68,15 @@ fun HomeScreen(
         zoomControlsEnabled = false,
         myLocationButtonEnabled = true
     )
-    val properties = MapProperties(isMyLocationEnabled = true)
+    // 다크 모드 스타일 로드
+    val mapStyleOptions = remember {
+        MapStyleOptions.loadRawResourceStyle(context, R.raw.map_style_dark)
+    }
+    // properties에 mapStyleOptions 적용
+    val properties = MapProperties(
+        isMyLocationEnabled = true,
+        mapStyleOptions = mapStyleOptions
+    )
 
     // 카메라의 줌 레벨이 변하는 것을 관찰하여 ViewModel에 전달
     LaunchedEffect(cameraPositionState.isMoving) {
