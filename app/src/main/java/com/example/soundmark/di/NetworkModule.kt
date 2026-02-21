@@ -1,5 +1,7 @@
 package com.example.soundmark.di
 
+import android.content.Context
+import android.content.SharedPreferences
 import com.example.soundmark.data.network.ApiService
 import com.example.soundmark.data.network.AuthInterceptor
 import com.example.soundmark.data.network.SpotifyApi
@@ -9,6 +11,7 @@ import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -158,6 +161,13 @@ object NetworkModule {
         @Named("googleMaps") retrofit: Retrofit
     ): com.example.soundmark.data.network.MapApiService =
         retrofit.create(com.example.soundmark.data.network.MapApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideSharedPreferences(@ApplicationContext context: Context): SharedPreferences {
+        // "soundmark_prefs"는 실제 사용 중인 이름으로 변경하셔도 됩니다.
+        return context.getSharedPreferences("soundmark_prefs", Context.MODE_PRIVATE)
+    }
 
     @Provides
     @Singleton

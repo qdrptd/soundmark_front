@@ -62,8 +62,9 @@ import com.example.soundmark.ui.views.onboard.OnboardScreen
 import com.example.soundmark.ui.views.onboard.OnboardViewModel
 import com.example.soundmark.ui.views.profile.EditProfileScreen
 import com.example.soundmark.ui.views.profile.ProfileRoute
-import com.example.soundmark.ui.views.songlist.SongListScreen
 import com.example.soundmark.ui.views.splash.SplashScreen
+import com.example.soundmark.ui.views.recommendation.RecommendationScreen
+import com.example.soundmark.ui.views.recommendation.RecommendationViewModel
 
 private object NoIndication : IndicationNodeFactory {
     override fun create(interactionSource: InteractionSource): Modifier.Node {
@@ -249,39 +250,40 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
                     )
                 }
 
-                composable(NavigationDestination.SONG_LIST.name) {
-                    SongListScreen()
-                }
-                composable(NavigationDestination.SONG_ADD.name) {
-                    AddScreen(onBack = { navController.popBackStack() })
-                }
-                composable(
-                    route = NavigationDestination.PROFILE.route,
-                    arguments = listOf(navArgument("userId") { type = NavType.StringType })
-                ) { backStackEntry ->
-                    val userId = backStackEntry.arguments?.getString("userId") ?: "me"
-                    ProfileRoute(userId = userId,
-                        onNavigateToEdit = { name, message, imageId ->
-                            // 인자를 포함하여 이동
-                            navController.navigate("profile_edit?name=$name&message=$message&imageId=$imageId")
-                        },
-                        onNavigateToSongDetail = { songId ->
-                            navController.navigate("song_detail/$songId")
-                        }
-                    )
-                }
-                // [추가] 프로필 수정 화면
-                composable(
-                    route = NavigationDestination.PROFILE_EDIT.route,
-                    arguments = listOf(
-                        navArgument("name") { type = NavType.StringType; defaultValue = "" },
-                        navArgument("message") { type = NavType.StringType; defaultValue = "" },
-                        navArgument("imageId") { type = NavType.IntType; defaultValue = 1 }
-                    )
-                ) { backStackEntry ->
-                    val name = backStackEntry.arguments?.getString("name") ?: ""
-                    val message = backStackEntry.arguments?.getString("message") ?: ""
-                    val imageId = backStackEntry.arguments?.getInt("imageId") ?: 1
+            composable(NavigationDestination.SONG_LIST.name) {
+                val recommendationViewModel: RecommendationViewModel = hiltViewModel()
+                RecommendationScreen(viewModel = recommendationViewModel)
+            }
+            composable(NavigationDestination.SONG_ADD.name) {
+                AddScreen(onBack = { navController.popBackStack() })
+            }
+            composable(
+                route = NavigationDestination.PROFILE.route,
+                arguments = listOf(navArgument("userId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId") ?: "me"
+                ProfileRoute(userId = userId,
+                    onNavigateToEdit = { name, message, imageId ->
+                        // 인자를 포함하여 이동
+                        navController.navigate("profile_edit?name=$name&message=$message&imageId=$imageId")
+                    },
+                    onNavigateToSongDetail = { songId ->
+                        navController.navigate("song_detail/$songId")
+                    }
+                )
+            }
+            // [추가] 프로필 수정 화면
+            composable(
+                route = NavigationDestination.PROFILE_EDIT.route,
+                arguments = listOf(
+                    navArgument("name") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("message") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("imageId") { type = NavType.IntType; defaultValue = 1 }
+                )
+            ) { backStackEntry ->
+                val name = backStackEntry.arguments?.getString("name") ?: ""
+                val message = backStackEntry.arguments?.getString("message") ?: ""
+                val imageId = backStackEntry.arguments?.getInt("imageId") ?: 1
 
                     EditProfileScreen(
                         initialName = name,

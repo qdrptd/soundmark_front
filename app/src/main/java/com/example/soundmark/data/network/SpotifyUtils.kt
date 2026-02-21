@@ -26,7 +26,7 @@ class SpotifyAuthDataSource @Inject constructor() {
             .appendQueryParameter("redirect_uri", redirectUri)
             .appendQueryParameter("code_challenge_method", "S256")
             .appendQueryParameter("code_challenge", challenge)
-            .appendQueryParameter("scope", "user-read-private user-read-email")
+            .appendQueryParameter("scope", "user-read-private user-read-email user-read-recently-played")
             .build(), codeVerifier)
     }
 

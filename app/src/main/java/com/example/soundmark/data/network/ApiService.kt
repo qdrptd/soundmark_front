@@ -3,6 +3,7 @@ package com.example.soundmark.data.network
 import com.example.soundmark.data.dto.CreateRecommendationRequestDto
 import com.example.soundmark.data.dto.JwtResponse
 import com.example.soundmark.data.dto.MapResponseDto
+import com.example.soundmark.data.dto.PlaceRecommendationResponseDto
 import com.example.soundmark.data.dto.ProfileUpdateRequestDto
 import com.example.soundmark.data.dto.RecommendationDetailDto
 import com.example.soundmark.data.dto.SpotifyVerifyRequest
@@ -80,4 +81,7 @@ interface ApiService {
 
     @GET("api/v1/tracks/popular")
     suspend fun getPopularTracks(): Response<TracksResponseDto>
+
+    @GET("/api/v1/users/me/place-recommendations")
+    suspend fun getPlaceRecommendations(@Header("X-Spotify-Token") spotifyToken: String): PlaceRecommendationResponseDto
 }

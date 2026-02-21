@@ -6,6 +6,8 @@ import com.example.soundmark.data.repository.profile.MarkRepository
 import com.example.soundmark.data.repository.profile.MarkRepositoryImpl
 import com.example.soundmark.data.repository.profile.UserRepository
 import com.example.soundmark.data.repository.profile.UserRepositoryImpl
+import com.example.soundmark.data.repository.recommendation.RecommendationRepository
+import com.example.soundmark.data.repository.recommendation.RecommendationRepositoryImpl
 import com.example.soundmark.data.repository.songDetail.SoundMarkDetailRepository
 import com.example.soundmark.data.repository.songDetail.SoundMarkDetailRepositoryImpl
 import com.example.soundmark.data.repository.soundmark.SoundMarkRepository
@@ -67,4 +69,10 @@ abstract class RepositoryModule {
     abstract fun bindMapRepository(
         mapRepositoryImpl: MapRepositoryImpl
     ): MapRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindRecommendationRepository(
+        recommendationRepositoryImpl: RecommendationRepositoryImpl
+    ): RecommendationRepository
 }
