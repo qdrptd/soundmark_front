@@ -5,6 +5,7 @@ import com.example.soundmark.data.dto.JwtResponse
 import com.example.soundmark.data.dto.MapResponseDto
 import com.example.soundmark.data.dto.RecommendationDetailDto
 import com.example.soundmark.data.dto.SpotifyVerifyRequest
+import com.example.soundmark.data.dto.TracksResponseDto
 import com.example.soundmark.data.dto.UserProfileDto
 import com.example.soundmark.data.dto.UserResponse
 import com.example.soundmark.data.model.Profile
@@ -69,4 +70,7 @@ interface ApiService {
     suspend fun postRecommendation(
         @Body body: CreateRecommendationRequestDto
     ): Response<Unit>
+
+    @GET("api/v1/tracks/popular")
+    suspend fun getPopularTracks(): Response<TracksResponseDto>
 }
