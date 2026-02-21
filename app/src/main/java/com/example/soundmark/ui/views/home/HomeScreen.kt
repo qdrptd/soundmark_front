@@ -5,12 +5,15 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.soundmark.data.model.ClusterMark
@@ -22,7 +25,10 @@ import com.google.maps.android.compose.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(viewModel: HomeViewModel) {
+fun HomeScreen(
+    viewModel: HomeViewModel,
+    onNavigateToAdd: () -> Unit
+) {
     val clusteredMarks by viewModel.clusteredMarks.collectAsState()
     val selectedCluster by viewModel.selectedCluster.collectAsState()
     val context = LocalContext.current
@@ -32,7 +38,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(LatLng(37.5665, 126.9780), 15f)
     }
-    val uiSettings = MapUiSettings(zoomControlsEnabled = true)
+    val uiSettings = MapUiSettings(zoomControlsEnabled = false)
     val properties = MapProperties(isMyLocationEnabled = false)
 
     // 카메라의 줌 레벨이 변하는 것을 관찰하여 ViewModel에 전달
@@ -42,7 +48,18 @@ fun HomeScreen(viewModel: HomeViewModel) {
         }
     }
 
-    Scaffold { padding ->
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToAdd,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = ComposeColor.White,
+                shape = androidx.compose.foundation.shape.CircleShape
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add SoundMark")
+            }
+        }
+    ) { padding ->
         GoogleMap(
             modifier = Modifier.padding(padding).fillMaxSize(),
             cameraPositionState = cameraPositionState,

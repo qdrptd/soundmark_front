@@ -20,6 +20,7 @@ object NetworkModule {
     private const val SPOTIFY_ACCOUNTS_BASE_URL = "https://accounts.spotify.com/"
     private const val SPOTIFY_API_BASE_URL = "https://api.spotify.com/"
     private const val BACKEND_BASE_URL = "https://your.backend.com/" // 👉 TODO 변경
+    private const val GOOGLE_MAPS_BASE_URL = "https://maps.googleapis.com/"
 
     // =========================
     // OkHttp
@@ -92,6 +93,18 @@ object NetworkModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
+    @Provides
+    @Singleton
+    @Named("googleMaps")
+    fun provideGoogleMapsRetrofit(
+        client: OkHttpClient
+    ): Retrofit =
+        Retrofit.Builder()
+            .baseUrl(GOOGLE_MAPS_BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
     // =========================
     // API Interfaces
     // =========================
@@ -109,4 +122,11 @@ object NetworkModule {
         @Named("backend") retrofit: Retrofit
     ): ApiService =
         retrofit.create(ApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideMapApiService(
+        @Named("googleMaps") retrofit: Retrofit
+    ): com.example.soundmark.data.network.MapApiService =
+        retrofit.create(com.example.soundmark.data.network.MapApiService::class.java)
 }

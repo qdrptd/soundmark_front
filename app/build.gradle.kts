@@ -35,6 +35,11 @@ android {
         manifestPlaceholders["MAPS_API_KEY"] = localProperties.getProperty("MAPS_API_KEY") ?: ""
         buildConfigField(
             "String",
+            "MAPS_API_KEY",
+            "\"${localProperties.getProperty("MAPS_API_KEY")}\""
+        )
+        buildConfigField(
+            "String",
             "SPOTIFY_CLIENT_ID",
             "\"${localProperties.getProperty("SPOTIFY_CLIENT_ID")}\""
         )
