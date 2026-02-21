@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Color
 // Main Theme Colors
 val BackgroundDark = Color(0xFF121212)
 val BackgroundDark2 = Color(0xFF1A1A1A)
+val BackgroundDarker = Color(0xFF0A0A0A)
 val PointGreen = Color(0xFF00FF9C)
 
 // Surface & Variations

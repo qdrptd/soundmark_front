@@ -4,6 +4,7 @@ import android.Manifest
 import android.location.Location
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -36,8 +37,13 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
+import com.example.soundmark.R
+import com.example.soundmark.ui.theme.BackgroundDark
+import com.example.soundmark.ui.theme.BackgroundDarker
 import com.example.soundmark.ui.theme.SurfaceVariantDark
+import com.example.soundmark.util.bold
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,10 +97,16 @@ fun AddScreen(
     }
 
     Scaffold(
+        containerColor = BackgroundDarker,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("사운드 마크 추가") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = BackgroundDarker,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
+                ),
+                title = { Text("사운드 마크 추가", style = MaterialTheme.typography.titleLarge.bold()) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -103,23 +115,31 @@ fun AddScreen(
             )
         },
         bottomBar = {
-            Button(
-                onClick = { viewModel.postSoundMark() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .height(56.dp),
-                enabled = uiState.selectedTrack != null && uiState.selectedPlace != null && !uiState.isPosting,
-                shape = MaterialTheme.shapes.medium
-            ) {
-                if (uiState.isPosting) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 2.dp
+            Box(modifier = Modifier.background(color = BackgroundDarker)) {
+                Button(
+                    onClick = { viewModel.postSoundMark() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .height(56.dp),
+                    enabled = uiState.selectedTrack != null && uiState.selectedPlace != null && !uiState.isPosting,
+                    shape = MaterialTheme.shapes.medium,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                } else {
-                    Text("사운드 마크 심기")
+                ) {
+                    if (uiState.isPosting) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("사운드 마크 심기", style = MaterialTheme.typography.titleMedium.bold())
+                    }
                 }
             }
         }
@@ -133,94 +153,122 @@ fun AddScreen(
             SelectionItem(
                 label = uiState.selectedTrack?.title ?: "노래 선택",
                 isSelected = uiState.selectedTrack != null,
-                icon = Icons.Default.PlayArrow,
+                icon = ImageVector.vectorResource(R.drawable.ic_music),
                 onClick = { showSongBottomSheet = true }
             )
             
             HorizontalDivider(
                 thickness = 0.5.dp,
-                color = MaterialTheme.colorScheme.outlineVariant
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
             )
 
             // 장소 선택 섹션
             SelectionItem(
                 label = uiState.selectedPlace?.placeName ?: "장소 선택",
                 isSelected = uiState.selectedPlace != null,
-                icon = Icons.Default.LocationOn,
+                icon = ImageVector.vectorResource(R.drawable.ic_location),
                 onClick = { showBottomSheet = true }
             )
 
             HorizontalDivider(
                 thickness = 0.5.dp,
-                color = MaterialTheme.colorScheme.outlineVariant
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                OutlinedTextField(
-                    value = uiState.message,
-                    onValueChange = { viewModel.onMessageChanged(it) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("메시지 (선택 사항)") },
-                    placeholder = { Text("이 노래에 대한 추억을 적어주세요.") },
-                    minLines = 3,
-                    maxLines = 5,
-                    shape = MaterialTheme.shapes.medium
-                )
+            val nearbyListState = rememberLazyListState()
 
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "주변 추천 장소",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    if (uiState.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp
-                        )
-                    }
+            val displayPlaces = remember(uiState.nearbyPlaces, uiState.selectedPlace) {
+                val list = uiState.nearbyPlaces.toMutableList()
+                uiState.selectedPlace?.let { selected ->
+                    list.removeAll { it.placeId == selected.placeId || (it.latitude == selected.latitude && it.longitude == selected.longitude) }
+                    list.add(0, selected)
                 }
-                
-                Spacer(modifier = Modifier.height(8.dp))
+                list.take(6)
+            }
 
-                if (uiState.nearbyPlaces.isNotEmpty()) {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(horizontal = 4.dp)
+            LaunchedEffect(uiState.selectedPlace) {
+                if (displayPlaces.isNotEmpty()) {
+                    nearbyListState.animateScrollToItem(0)
+                }
+            }
+
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                if (displayPlaces.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        items(uiState.nearbyPlaces.take(5)) { place ->
-                            AssistChip(
+                        Text(
+                            text = "주변 추천 장소",
+                            style = MaterialTheme.typography.titleMedium.bold()
+                        )
+                        if (uiState.isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp
+                            )
+                        }
+                    }
+
+                    LazyRow(
+                        state = nearbyListState,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(horizontal = 0.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(displayPlaces) { place ->
+                            val isSelected = uiState.selectedPlace == place
+                            val distance = uiState.currentLocation?.let { current ->
+                                val results = FloatArray(1)
+                                Location.distanceBetween(
+                                    current.latitude, current.longitude,
+                                    place.latitude, place.longitude,
+                                    results
+                                )
+                                val dist = results[0]
+                                if (dist >= 1000) "%.1fkm".format(dist / 1000f) else "${dist.toInt()}m"
+                            }
+
+                            Surface(
                                 onClick = { viewModel.onPlaceSelected(place) },
-                                label = { Text(place.placeName ?: "Unknown") },
-                                leadingIcon = {
-                                    if (uiState.selectedPlace == place) {
-                                        Icon(
-                                            Icons.Default.Check, 
-                                            contentDescription = null,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                    } else {
-                                        Icon(
-                                            Icons.Default.LocationOn, 
-                                            contentDescription = null,
-                                            modifier = Modifier.size(18.dp)
+                                shape = MaterialTheme.shapes.medium,
+                                color = if (isSelected) 
+                                    androidx.compose.ui.graphics.Color(0xFF01FF9C).copy(alpha = 0.2f)
+                                else 
+                                    SurfaceVariantDark,
+                                border = androidx.compose.foundation.BorderStroke(
+                                    width = 1.dp,
+                                    color = if (isSelected) 
+                                        MaterialTheme.colorScheme.primary 
+                                    else 
+                                        MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                                ),
+                                modifier = Modifier.wrapContentWidth()
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                                    horizontalAlignment = Alignment.Start
+                                ) {
+                                    Text(
+                                        text = place.placeName ?: "Unknown",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = if (isSelected) 
+                                            MaterialTheme.colorScheme.onPrimaryContainer 
+                                        else 
+                                            MaterialTheme.colorScheme.onSurface
+                                    )
+                                    distance?.let {
+                                        Text(
+                                            text = it,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.outline
                                         )
                                     }
-                                },
-                                colors = AssistChipDefaults.assistChipColors(
-                                    containerColor = if (uiState.selectedPlace == place) 
-                                        MaterialTheme.colorScheme.primaryContainer 
-                                    else 
-                                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                                )
-                            )
+                                }
+                            }
                         }
                     }
                 } else if (!uiState.isLoading) {
@@ -230,6 +278,49 @@ fun AddScreen(
                         color = MaterialTheme.colorScheme.outline
                     )
                 }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                val keyboardController = LocalSoftwareKeyboardController.current
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("한줄 코멘트", style = MaterialTheme.typography.titleMedium.bold())
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    Text(
+                        text = "${uiState.message.length}/100",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
+                OutlinedTextField(
+                    value = uiState.message,
+                    onValueChange = { 
+                        if (it.length <= 100) {
+                            viewModel.onMessageChanged(it)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("이 순간의 느낌을 남겨보세요..", style = MaterialTheme.typography.bodyMedium) },
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { keyboardController?.hide() }
+                    ),
+                    minLines = 3,
+                    maxLines = 5,
+                    shape = MaterialTheme.shapes.medium,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = SurfaceVariantDark,
+                        unfocusedContainerColor = SurfaceVariantDark,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                    )
+                )
             }
         }
     }
@@ -238,6 +329,7 @@ fun AddScreen(
         ModalBottomSheet(
             onDismissRequest = { showSongBottomSheet = false },
             sheetState = songSheetState,
+            containerColor = BackgroundDarker,
             dragHandle = {
                 BottomSheetDefaults.DragHandle(
                     modifier = Modifier.clickable { showSongBottomSheet = false }
@@ -259,6 +351,7 @@ fun AddScreen(
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
             sheetState = sheetState,
+            containerColor = BackgroundDarker,
             dragHandle = {
                 BottomSheetDefaults.DragHandle(
                     modifier = Modifier.clickable { showBottomSheet = false }
@@ -295,7 +388,7 @@ fun SelectionItem(
     Surface(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        color = SurfaceVariantDark
+        color = BackgroundDarker
     ) {
         Row(
             modifier = Modifier
@@ -305,7 +398,8 @@ fun SelectionItem(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
             Text(
@@ -353,7 +447,7 @@ fun SongSelectionContent(
     ) {
         Text(
             text = "노래 선택",
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleLarge.bold(),
             modifier = Modifier.padding(vertical = 16.dp)
         )
 
@@ -392,7 +486,11 @@ fun SongSelectionContent(
                 }
             ),
             singleLine = true,
-            shape = MaterialTheme.shapes.medium
+            shape = MaterialTheme.shapes.medium,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = SurfaceVariantDark,
+                unfocusedContainerColor = SurfaceVariantDark
+            )
         )
 
         LazyColumn(
@@ -413,16 +511,17 @@ fun SongSelectionContent(
 
             items(uiState.searchedTracks) { track ->
                 ListItem(
-                    headlineContent = { Text(track.title) },
-                    supportingContent = { Text(track.artist, color = MaterialTheme.colorScheme.outline) },
+                    headlineContent = { Text(track.title, style = MaterialTheme.typography.bodyLarge.bold()) },
+                    supportingContent = { Text(track.artist, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline) },
                     leadingContent = { 
                         AsyncImage(
                             model = track.albumCoverUrl,
                             contentDescription = null,
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.size(48.dp)
                         )
                     },
-                    modifier = Modifier.fillMaxWidth().clickable { onTrackSelected(track) }.padding(vertical = 4.dp)
+                    colors = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
+                    modifier = Modifier.fillMaxWidth().clickable { onTrackSelected(track) }
                 )
             }
         }
@@ -460,29 +559,28 @@ fun PlaceSelectionContent(
     ) {
         Text(
             text = "장소 추가",
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleLarge.bold(),
             modifier = Modifier.padding(vertical = 16.dp)
         )
 
-        Text("현재 장소", style = MaterialTheme.typography.titleMedium)
+        Text("현재 장소", style = MaterialTheme.typography.titleMedium.bold())
 
         Card(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+            colors = CardDefaults.cardColors(containerColor = SurfaceVariantDark),
             onClick = { uiState.currentLocation?.let { onPlaceSelected(it) } }
         ) {
             Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.LocationOn, contentDescription = null)
+                Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
-                    Text(text = uiState.currentLocation?.placeName ?: "장소를 찾는 중...", style = MaterialTheme.typography.bodyLarge)
-                    Text(text = "현재 위치", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                    Text(text = uiState.currentLocation?.placeName ?: "위치를 선택하세요", style = MaterialTheme.typography.bodyLarge.bold())
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        Text("주변 장소", style = MaterialTheme.typography.titleMedium)
+        Text("주변 장소", style = MaterialTheme.typography.titleMedium.bold())
 
         if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
@@ -507,19 +605,20 @@ fun PlaceSelectionContent(
                     }
 
                     ListItem(
-                        headlineContent = { Text(place.placeName ?: "Unknown") },
-                        supportingContent = { Text(place.address ?: "${place.latitude}, ${place.longitude}") },
+                        headlineContent = { Text(place.placeName ?: "Unknown", style = MaterialTheme.typography.bodyLarge.bold()) },
+                        supportingContent = { Text(place.address ?: "${place.latitude}, ${place.longitude}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline) },
                         leadingContent = { Icon(Icons.Default.LocationOn, contentDescription = null) },
                         trailingContent = {
                             distance?.let {
                                 Text(
                                     text = it,
                                     style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.primary
+                                    color = MaterialTheme.colorScheme.outline
                                 )
                             }
                         },
-                        modifier = Modifier.fillMaxWidth().clickable { onPlaceSelected(place) }.padding(vertical = 4.dp)
+                        colors = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
+                        modifier = Modifier.fillMaxWidth().clickable { onPlaceSelected(place) }
                     )
                 }
             }
