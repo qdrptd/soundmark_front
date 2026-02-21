@@ -36,12 +36,13 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
 import com.example.soundmark.R
-import com.example.soundmark.ui.theme.BackgroundDark
 import com.example.soundmark.ui.theme.BackgroundDarker
+import com.example.soundmark.ui.theme.PointGreen
 import com.example.soundmark.ui.theme.SurfaceVariantDark
 import com.example.soundmark.util.bold
 
@@ -101,21 +102,31 @@ fun AddScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
+                windowInsets = WindowInsets.statusBars, // 상태바 영역만 확보
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = BackgroundDarker,
                     titleContentColor = MaterialTheme.colorScheme.onSurface,
                     navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 ),
-                title = { Text("사운드 마크 추가", style = MaterialTheme.typography.titleLarge.bold()) },
+                title = { 
+                    Text(
+                        text = "사운드 마크 심기",
+                        style = MaterialTheme.typography.titleMedium.bold() // 크기를 titleLarge에서 titleMedium으로 살짝 줄임
+                    ) 
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack, 
+                            contentDescription = "Back",
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
                 }
             )
         },
         bottomBar = {
-            Box(modifier = Modifier.background(color = BackgroundDarker)) {
+            Box(modifier = Modifier.background(BackgroundDarker)) {
                 Button(
                     onClick = { viewModel.postSoundMark() },
                     modifier = Modifier
@@ -125,8 +136,8 @@ fun AddScreen(
                     enabled = uiState.selectedTrack != null && uiState.selectedPlace != null && !uiState.isPosting,
                     shape = MaterialTheme.shapes.medium,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        containerColor = PointGreen,
+                        contentColor = Color.Black,
                         disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                         disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -134,7 +145,7 @@ fun AddScreen(
                     if (uiState.isPosting) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onPrimary,
+                            color = Color.Black,
                             strokeWidth = 2.dp
                         )
                     } else {
@@ -195,24 +206,20 @@ fun AddScreen(
             }
 
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                if (displayPlaces.isNotEmpty()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                if (uiState.isLoading) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(72.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "주변 추천 장소",
-                            style = MaterialTheme.typography.titleMedium.bold()
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 3.dp,
+                            color = PointGreen
                         )
-                        if (uiState.isLoading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp
-                            )
-                        }
                     }
-
+                } else if (displayPlaces.isNotEmpty()) {
                     LazyRow(
                         state = nearbyListState,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -236,13 +243,13 @@ fun AddScreen(
                                 onClick = { viewModel.onPlaceSelected(place) },
                                 shape = MaterialTheme.shapes.medium,
                                 color = if (isSelected) 
-                                    androidx.compose.ui.graphics.Color(0xFF01FF9C).copy(alpha = 0.2f)
+                                    PointGreen.copy(alpha = 0.2f)
                                 else 
                                     SurfaceVariantDark,
                                 border = androidx.compose.foundation.BorderStroke(
                                     width = 1.dp,
                                     color = if (isSelected) 
-                                        MaterialTheme.colorScheme.primary 
+                                        PointGreen 
                                     else 
                                         MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                                 ),
@@ -256,7 +263,7 @@ fun AddScreen(
                                         text = place.placeName ?: "Unknown",
                                         style = MaterialTheme.typography.labelLarge,
                                         color = if (isSelected) 
-                                            MaterialTheme.colorScheme.onPrimaryContainer 
+                                            Color.White 
                                         else 
                                             MaterialTheme.colorScheme.onSurface
                                     )
@@ -271,7 +278,7 @@ fun AddScreen(
                             }
                         }
                     }
-                } else if (!uiState.isLoading) {
+                } else {
                     Text(
                         text = "주변 장소를 찾을 수 없습니다.",
                         style = MaterialTheme.typography.bodyMedium,
@@ -317,7 +324,7 @@ fun AddScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = SurfaceVariantDark,
                         unfocusedContainerColor = SurfaceVariantDark,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        focusedBorderColor = PointGreen,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                     )
                 )
@@ -388,17 +395,17 @@ fun SelectionItem(
     Surface(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        color = BackgroundDarker
+        color = SurfaceVariantDark
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 20.dp),
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = if (isSelected) PointGreen else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
@@ -464,7 +471,11 @@ fun SongSelectionContent(
                         }
                     }
                     if (uiState.isSearching) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp), 
+                            strokeWidth = 2.dp,
+                            color = PointGreen
+                        )
                         Spacer(modifier = Modifier.width(12.dp))
                     } else {
                         IconButton(onClick = { 
@@ -489,7 +500,8 @@ fun SongSelectionContent(
             shape = MaterialTheme.shapes.medium,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = SurfaceVariantDark,
-                unfocusedContainerColor = SurfaceVariantDark
+                unfocusedContainerColor = SurfaceVariantDark,
+                focusedBorderColor = PointGreen
             )
         )
 
@@ -520,7 +532,7 @@ fun SongSelectionContent(
                             modifier = Modifier.size(48.dp)
                         )
                     },
-                    colors = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                     modifier = Modifier.fillMaxWidth().clickable { onTrackSelected(track) }
                 )
             }
@@ -571,10 +583,11 @@ fun PlaceSelectionContent(
             onClick = { uiState.currentLocation?.let { onPlaceSelected(it) } }
         ) {
             Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Icon(Icons.Default.LocationOn, contentDescription = null, tint = PointGreen)
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
-                    Text(text = uiState.currentLocation?.placeName ?: "위치를 선택하세요", style = MaterialTheme.typography.bodyLarge.bold())
+                    Text(text = uiState.currentLocation?.placeName ?: "장소를 찾는 중...", style = MaterialTheme.typography.bodyLarge.bold())
+                    Text(text = "현재 위치", style = MaterialTheme.typography.labelSmall, color = PointGreen)
                 }
             }
         }
@@ -584,7 +597,7 @@ fun PlaceSelectionContent(
 
         if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = PointGreen)
             }
         } else {
             LazyColumn(
@@ -617,7 +630,7 @@ fun PlaceSelectionContent(
                                 )
                             }
                         },
-                        colors = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                         modifier = Modifier.fillMaxWidth().clickable { onPlaceSelected(place) }
                     )
                 }
