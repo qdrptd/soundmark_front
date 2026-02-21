@@ -17,6 +17,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -27,6 +30,7 @@ import com.example.soundmark.data.model.SoundMark
 fun ProfileRoute(userId: String) {
     val viewModel = hiltViewModel<ProfileViewModel>()
     val uiState by viewModel.uiState.collectAsState()
+    var isExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -82,13 +86,57 @@ fun ProfileRoute(userId: String) {
                         )
                     }
 
-                    items(profile.mySoundMarks) { soundMark ->
-                        SoundMarkItem(soundMark = soundMark, isMe = uiState.isMe)
-                        Spacer(modifier = Modifier.height(12.dp))
+                    if (profile.mySoundMarks.isEmpty()) {
+                        item {
+                            EmptySoundMarkView()
+                        }
+                    } else {
+                        val displayList = if (isExpanded) {
+                            profile.mySoundMarks
+                        } else {
+                            profile.mySoundMarks.take(3)
+                        }
+
+                        items(displayList) { soundMark ->
+                            SoundMarkItem(soundMark = soundMark, isMe = uiState.isMe)
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
+
+                        if (!isExpanded && profile.mySoundMarks.size > 3) {
+                            item {
+                                TextButton(
+                                    onClick = { isExpanded = true },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("더보기 (${profile.mySoundMarks.size - 3}개 더 있음)")
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun EmptySoundMarkView() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "등록된 사운드마크가 없습니다.",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = "주변의 멋진 장소에 음악을 남겨보세요!",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.outline
+        )
     }
 }
 
