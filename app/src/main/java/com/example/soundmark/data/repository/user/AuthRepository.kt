@@ -17,6 +17,10 @@ interface AuthRepository {
         redirectUri: String,
     ): Result<String>
 
+    suspend fun handleSpotifyCallback(
+        code: String
+    ): Result<String>
+
     suspend fun refreshAccessToken(
         clientId: String
     ): Result<String>

@@ -2,6 +2,7 @@ package com.example.soundmark.data.repository.user
 
 import android.content.Context
 import android.util.Log
+import com.example.soundmark.data.network.ApiService
 import com.example.soundmark.data.network.SpotifyAuthApi
 import com.example.soundmark.data.network.SpotifyAuthDataSource
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
     private val spotifyAuthApi: SpotifyAuthApi,
+    private val apiService: ApiService,
     private val spotifyDataSource: SpotifyAuthDataSource,
     @ApplicationContext private val context: Context
 ) : AuthRepository {
@@ -78,6 +80,18 @@ class AuthRepositoryImpl @Inject constructor(
         tokenResponse.refreshToken?.let { saveRefreshToken(it) }
 
         return Result.success(spotifyAccessToken)
+    }
+
+    override suspend fun handleSpotifyCallback(code: String): Result<String> = runCatching {
+        Log.d("AuthRepository", "Calling spotify/callback with code: $code")
+        val response = apiService.spotifyCallback(code)
+        
+        saveAccessToken(response.accessToken)
+        response.refreshToken?.let { saveRefreshToken(it) }
+        
+        return Result.success(response.accessToken)
+    }.onFailure { e ->
+        Log.e("AuthRepository", "spotify/callback failed: ${e.message}", e)
     }
 
     override suspend fun refreshAccessToken(clientId: String): Result<String> = runCatching {
