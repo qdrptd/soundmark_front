@@ -12,28 +12,29 @@ class UserRepositoryImpl @Inject constructor(
 ) : UserRepository {
 
     override suspend fun getMe(): Result<User> {
-        return Result.success(User.Default)
+        return try {
+            val user = apiService.getMe().toDomain()
+            Result.success(user)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override suspend fun getMyProfile(): Result<Profile> {
-        try{
-            return Result.success(
-                Profile.Default
-            )
-        } catch (e: Exception){
-            return Result.failure(e)
+        return try {
+            val profile = apiService.getMyProfile()
+            Result.success(profile)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
     override suspend fun getProfileByUserId(userId: String): Result<Profile> {
-        try{
-            return Result.success(
-                Profile.Default
-            )
-        } catch (e: Exception){
-            return Result.failure(e)
+        return try {
+            val profile = apiService.getProfileByUserId(userId)
+            Result.success(profile)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
-
-
 }

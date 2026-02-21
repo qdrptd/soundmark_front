@@ -18,11 +18,12 @@ class TokenAuthenticator @Inject constructor(
 ) : Authenticator {
 
     override fun authenticate(route: Route?, response: Response): Request? {
-        Log.d("TokenAuthenticator", "Received 401 for ${response.request.url}")
+        val url = response.request.url.toString()
+        Log.d("TokenAuthenticator", "Received 401 for $url")
 
         // Retry count check (avoid infinite loops)
         if (response.responseCount >= 3) {
-            Log.e("TokenAuthenticator", "Retry limit reached, giving up")
+            Log.e("TokenAuthenticator", "Retry limit reached for $url, giving up")
             return null
         }
 
@@ -30,36 +31,43 @@ class TokenAuthenticator @Inject constructor(
         val clientId = BuildConfig.SPOTIFY_CLIENT_ID
 
         synchronized(this) {
-            val currentToken = authRepository.getAccessToken()
-            val requestToken = response.request.header("Authorization")?.removePrefix("Bearer ")
+            // 스포티파이 API 호출 중 발생한 401인 경우
+            if (url.contains("api.spotify.com")) {
+                val currentSpotifyToken = authRepository.getSpotifyAccessToken()
+                val requestToken = response.request.header("Authorization")?.removePrefix("Bearer ")
 
-            Log.d("TokenAuthenticator", "Attempting token refresh. currentToken=${currentToken?.take(5)}, requestToken=${requestToken?.take(5)}")
+                Log.d("TokenAuthenticator", "Attempting Spotify token refresh. currentToken=${currentSpotifyToken?.take(5)}, requestToken=${requestToken?.take(5)}")
 
-            // If the token was already refreshed by another thread, use the new one
-            if (currentToken != null && currentToken != requestToken) {
-                Log.d("TokenAuthenticator", "Token already refreshed by another thread, retrying with new token")
-                return response.request.newBuilder()
-                    .addHeader("Authorization", "Bearer $currentToken")
-                    .build()
+                // If the token was already refreshed by another thread, use the new one
+                if (currentSpotifyToken != null && currentSpotifyToken != requestToken) {
+                    Log.d("TokenAuthenticator", "Spotify Token already refreshed by another thread")
+                    return response.request.newBuilder()
+                        .header("Authorization", "Bearer $currentSpotifyToken")
+                        .build()
+                }
+
+                // Otherwise, refresh the token
+                Log.d("TokenAuthenticator", "Refreshing Spotify token via Spotify accounts...")
+                val result = runBlocking {
+                    authRepository.refreshAccessToken(clientId)
+                }
+
+                return if (result.isSuccess) {
+                    val newToken = result.getOrThrow()
+                    Log.d("TokenAuthenticator", "Spotify Refresh successful! Retrying request with new token.")
+                    response.request.newBuilder()
+                        .header("Authorization", "Bearer $newToken")
+                        .build()
+                } else {
+                    Log.e("TokenAuthenticator", "Spotify Refresh failed: ${result.exceptionOrNull()?.message}. Clearing session.")
+                    authRepository.clearSession()
+                    null
+                }
             }
-
-            // Otherwise, refresh the token
-            Log.d("TokenAuthenticator", "Refreshing token...")
-            val result = runBlocking {
-                authRepository.refreshAccessToken(clientId)
-            }
-
-            return if (result.isSuccess) {
-                val newToken = result.getOrThrow()
-                Log.d("TokenAuthenticator", "Refresh successful! Retrying request with new token: ${newToken.take(10)}...")
-                response.request.newBuilder()
-                    .header("Authorization", "Bearer $newToken")
-                    .build()
-            } else {
-                Log.e("TokenAuthenticator", "Refresh failed: ${result.exceptionOrNull()?.message}. Clearing session.")
-                authRepository.clearSession()
-                null
-            }
+            
+            // 우리 백엔드 서버 API 호출 중 발생한 401인 경우 (현재 갱신 로직 미구현)
+            Log.e("TokenAuthenticator", "Backend API 401. No refresh logic implemented.")
+            return null
         }
     }
 

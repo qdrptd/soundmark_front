@@ -14,14 +14,31 @@ class AuthInterceptor @Inject constructor(
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
-        val token = authRepositoryProvider.get().getAccessToken()
+        val url = originalRequest.url.toString()
+        val authRepository = authRepositoryProvider.get()
+
+        // URL에 따라 적절한 토큰 선택
+        val token = when {
+            url.contains("api.spotify.com") -> {
+                Log.d("AuthInterceptor", "Target: Spotify API. Fetching Spotify Access Token.")
+                authRepository.getSpotifyAccessToken()
+            }
+            url.contains("accounts.spotify.com") -> {
+                Log.d("AuthInterceptor", "Target: Spotify Accounts. No Auth Header needed.")
+                null
+            }
+            else -> {
+                Log.d("AuthInterceptor", "Target: Backend API. Fetching Backend Access Token.")
+                authRepository.getAccessToken()
+            }
+        }
 
         val requestBuilder = originalRequest.newBuilder()
         if (token != null) {
             Log.d("AuthInterceptor", "Attaching token to request: ${originalRequest.url}")
             requestBuilder.header("Authorization", "Bearer $token")
         } else {
-            Log.w("AuthInterceptor", "No token available for request: ${originalRequest.url}")
+            Log.w("AuthInterceptor", "No token attached for request: ${originalRequest.url}")
         }
 
         return chain.proceed(requestBuilder.build())
