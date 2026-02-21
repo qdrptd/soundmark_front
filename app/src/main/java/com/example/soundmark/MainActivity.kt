@@ -127,7 +127,12 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
                             label = { Text(screen.label) },
                             selected = currentDestination?.hierarchy?.any { it.route == screen.name } == true,
                             onClick = {
-                                navController.navigate(screen.name) {
+                                val targetRoute = if (screen == NavigationDestination.PROFILE) {
+                                    "${NavigationDestination.PROFILE.name}/me"
+                                } else {
+                                    screen.name
+                                }
+                                navController.navigate(targetRoute) {
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
                                     }
@@ -190,8 +195,12 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
             composable(NavigationDestination.SONG_ADD.name) {
                 AddScreen(onBack = { navController.popBackStack() })
             }
-            composable(NavigationDestination.PROFILE.name) {
-                ProfileRoute()
+            composable(
+                route = NavigationDestination.PROFILE.route,
+                arguments = listOf(navArgument("userId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId") ?: "me"
+                ProfileRoute(userId = userId)
             }
         }
     }
