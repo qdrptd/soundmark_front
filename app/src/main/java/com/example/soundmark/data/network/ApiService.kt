@@ -60,11 +60,16 @@ interface ApiService {
         @Query("mylng") myLng: Double
     ): Response<RecommendationDetailDto>
 
-    // 3. 리액션 전송 (추가된 부분)
+    // 3. 리액션 전송 및 삭제
     @PUT("api/v1/recommendations/{recommendation_id}/reactions")
     suspend fun putReaction(
         @Path("recommendation_id") id: String,
         @Body body: Map<String, String> // { "reaction_type": "🔥" }
+    ): Response<Unit>
+
+    @DELETE("api/v1/recommendations/{recommendation_id}/reactions")
+    suspend fun deleteReaction(
+        @Path("recommendation_id") id: String
     ): Response<Unit>
 
 

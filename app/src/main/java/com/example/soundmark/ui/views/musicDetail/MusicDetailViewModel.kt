@@ -1,7 +1,5 @@
 package com.example.soundmark.ui.views.musicDetail
 
-import android.media.AudioAttributes
-import android.media.MediaPlayer
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -32,8 +30,6 @@ class MusicDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<MusicDetailUiState>(MusicDetailUiState.Loading)
     val uiState: StateFlow<MusicDetailUiState> = _uiState
 
-    private var mediaPlayer: MediaPlayer? = null
-
     fun loadSoundMark(id: String) {
         viewModelScope.launch {
             _uiState.value = MusicDetailUiState.Loading
@@ -48,10 +44,6 @@ class MusicDetailViewModel @Inject constructor(
                         lng = currentLocation.longitude
                     ).onSuccess { soundMark ->
                         _uiState.value = MusicDetailUiState.Success(soundMark)
-                        // 노래 로드 성공 시 미리보기 재생 시도
-                        soundMark.track.previewUrl?.let { url ->
-                            playPreview(url)
-                        }
                     }.onFailure { exception ->
                         _uiState.value = MusicDetailUiState.Error(exception.message ?: "데이터 로드 실패")
                     }
@@ -64,46 +56,6 @@ class MusicDetailViewModel @Inject constructor(
         }
     }
 
-    private fun playPreview(url: String) {
-        try {
-            stopPreview() // 기존 재생 중인 것이 있다면 중지
-            
-            mediaPlayer = MediaPlayer().apply {
-                setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
-                        .build()
-                )
-                setDataSource(url)
-                prepareAsync()
-                setOnPreparedListener { 
-                    it.start()
-                    Log.d("MusicDetailViewModel", "Preview playback started")
-                }
-                setOnErrorListener { _, what, extra ->
-                    Log.e("MusicDetailViewModel", "MediaPlayer error: $what, $extra")
-                    false
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("MusicDetailViewModel", "Failed to play preview: ${e.message}")
-        }
-    }
-
-    fun stopPreview() {
-        mediaPlayer?.apply {
-            if (isPlaying) stop()
-            release()
-        }
-        mediaPlayer = null
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        stopPreview() // 뷰모델이 파괴될 때 재생 중지 및 자원 해제
-    }
-
     /**
      * 리액션을 추가하거나 취소하는 비즈니스 로직입니다.
      */
@@ -113,39 +65,53 @@ class MusicDetailViewModel @Inject constructor(
             val mark = currentState.soundMark
             var updatedReactions = mark.reactions.toMutableList()
 
+            // 1. 내가 현재 누른 리액션이 있는지 확인
             val myOldReactionIndex = updatedReactions.indexOfFirst { it.isReactedByMe }
-            val isClickingSameReaction = myOldReactionIndex != -1 && updatedReactions[myOldReactionIndex].type.id == type.id
-
-            if (myOldReactionIndex != -1) {
-                val oldReaction = updatedReactions[myOldReactionIndex]
-                updatedReactions[myOldReactionIndex] = oldReaction.copy(
-                    count = (oldReaction.count - 1).coerceAtLeast(0),
-                    isReactedByMe = false
-                )
-            }
-
-            if (!isClickingSameReaction) {
-                val targetIndex = updatedReactions.indexOfFirst { it.type.id == type.id }
-                if (targetIndex != -1) {
-                    val existing = updatedReactions[targetIndex]
-                    updatedReactions[targetIndex] = existing.copy(
-                        count = existing.count + 1,
-                        isReactedByMe = true
-                    )
-                } else {
-                    updatedReactions.add(Reaction(type, 1, true))
-                }
-            }
-
-            updatedReactions = updatedReactions.filter { it.count > 0 }.toMutableList()
-
-            _uiState.value = currentState.copy(
-                soundMark = mark.copy(reactions = updatedReactions)
-            )
+            val isClickingSameReaction = myOldReactionIndex != -1 && updatedReactions[myOldReactionIndex].type.emoji == type.emoji
 
             viewModelScope.launch {
-                // 서버에는 "fire" 같은 ID가 아닌 "🔥" 같은 이모지 문자열을 보냅니다.
-                repository.postReaction(mark.id, type.emoji)
+                if (isClickingSameReaction) {
+                    // [취소 로직] 이미 누른 걸 또 누름 -> 삭제
+                    val oldReaction = updatedReactions[myOldReactionIndex]
+                    updatedReactions[myOldReactionIndex] = oldReaction.copy(
+                        count = (oldReaction.count - 1).coerceAtLeast(0),
+                        isReactedByMe = false
+                    )
+                    
+                    // 서버에 삭제 요청
+                    repository.deleteReaction(mark.id)
+                } else {
+                    // [등록/교체 로직]
+                    // 기존에 다른 걸 눌렀었다면 먼저 로컬 카운트 차감
+                    if (myOldReactionIndex != -1) {
+                        val oldReaction = updatedReactions[myOldReactionIndex]
+                        updatedReactions[myOldReactionIndex] = oldReaction.copy(
+                            count = (oldReaction.count - 1).coerceAtLeast(0),
+                            isReactedByMe = false
+                        )
+                    }
+
+                    // 새 리액션 추가 또는 카운트 증가
+                    val targetIndex = updatedReactions.indexOfFirst { it.type.emoji == type.emoji }
+                    if (targetIndex != -1) {
+                        val existing = updatedReactions[targetIndex]
+                        updatedReactions[targetIndex] = existing.copy(
+                            count = existing.count + 1,
+                            isReactedByMe = true
+                        )
+                    } else {
+                        updatedReactions.add(Reaction(type, 1, true))
+                    }
+
+                    // 서버에 등록(PUT) 요청
+                    repository.putReaction(mark.id, type.emoji)
+                }
+
+                // 숫자가 0이 된 리액션 제거 및 상태 업데이트
+                val finalReactions = updatedReactions.filter { it.count > 0 }
+                _uiState.value = currentState.copy(
+                    soundMark = mark.copy(reactions = finalReactions)
+                )
             }
         }
     }

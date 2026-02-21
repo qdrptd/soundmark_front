@@ -16,35 +16,44 @@ class SoundMarkDetailRepositoryImpl @Inject constructor(
             val response = apiService.getRecommendationDetail(id, lat, lng)
 
             if (response.isSuccessful) {
-                // 1. 성공 시 DTO를 도메인 모델로 변환 (날짜 파싱, 이모지 매핑 포함)
                 val body = response.body() ?: throw Exception("응답 데이터가 비어있습니다.")
                 Result.success(body.toDomain())
             } else {
-                // 2. 에러 핸들링 (특히 403 거리 제한 처리)
                 if (response.code() == 403) {
                     val errorJson = response.errorBody()?.string()
                     val errorData = gson.fromJson(errorJson, ErrorResponseDto::class.java)
-                    // 서버 메시지: "추천곡 상세는 반경 200m 이내에서만 볼 수 있습니다."
                     Result.failure(Exception(errorData.detail.message))
                 } else {
                     Result.failure(Exception("데이터 조회 실패 (코드: ${response.code()})"))
                 }
             }
         } catch (e: Exception) {
-            // 네트워크 끊김, 타임아웃 등
             Result.failure(e)
         }
     }
 
-    override suspend fun postReaction(id: String, reactionType: String): Result<Unit> {
+    override suspend fun putReaction(id: String, emoji: String): Result<Unit> {
         return try {
-            val body = mapOf("emoji" to reactionType)
+            val body = mapOf("emoji" to emoji)
             val response = apiService.putReaction(id, body)
             
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
                 Result.failure(Exception("리액션 전송 실패 (코드: ${response.code()})"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteReaction(id: String): Result<Unit> {
+        return try {
+            val response = apiService.deleteReaction(id)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("리액션 삭제 실패 (코드: ${response.code()})"))
             }
         } catch (e: Exception) {
             Result.failure(e)
