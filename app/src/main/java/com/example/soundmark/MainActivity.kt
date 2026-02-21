@@ -109,7 +109,7 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
     }
 
     val bottomBarDestinations = NavigationDestination.entries.filter { it.showInBottomBar }
-    val showBottomBar = bottomBarDestinations.any { it.name == currentDestination?.route }
+    val showBottomBar = bottomBarDestinations.any { it.route == currentDestination?.route }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -125,7 +125,7 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
                                 }
                             },
                             label = { Text(screen.label) },
-                            selected = currentDestination?.hierarchy?.any { it.route == screen.name } == true,
+                            selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                             onClick = {
                                 val targetRoute = if (screen == NavigationDestination.PROFILE) {
                                     "${NavigationDestination.PROFILE.name}/me"
