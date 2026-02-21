@@ -26,9 +26,10 @@ object MarkerClusteringUtil {
             if (pin.soundmarkId in visited) continue
 
             // 현재 핀을 기준으로 근처에 있는 핀들을 찾음
-            val nearbyPins = pins.filter { otherPin ->
-                otherPin.soundmarkId !in visited &&
-                        calculateDistance(pin.latitude, pin.longitude, otherPin.latitude, otherPin.longitude) < clusterThresholdDegrees
+            val nearbyPins = pins.filter { other ->
+                other.soundmarkId !in visited &&
+                        other.isActive == pin.isActive && // 💡 상태가 다르면 합치지 않음
+                        calculateDistance(pin.latitude, pin.longitude, other.latitude, other.longitude) < clusterThresholdDegrees
             }
 
             if (nearbyPins.isNotEmpty()) {
@@ -36,7 +37,19 @@ object MarkerClusteringUtil {
                 val avgLat = nearbyPins.map { it.latitude }.average()
                 val avgLng = nearbyPins.map { it.longitude }.average()
 
-                clusters.add(ClusterMark(LatLng(avgLat, avgLng), nearbyPins))
+                android.util.Log.d(
+                    "ClusteringDebug",
+                    "상태(${pin.isActive}) 그룹 생성: 핀 ${nearbyPins.size}개 합쳐짐 " +
+                            "| 대상 IDs: ${nearbyPins.map { it.soundmarkId }} " +
+                            "| 결과 위치: ($avgLat, $avgLng)"
+                )
+
+                clusters.add(ClusterMark(
+                    id = nearbyPins.first().soundmarkId,
+                    position = LatLng(avgLat, avgLng),
+                    pins = nearbyPins,
+                    isActive = pin.isActive)
+                )
                 visited.addAll(nearbyPins.map { it.soundmarkId })
             }
         }
