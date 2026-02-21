@@ -1,6 +1,7 @@
 package com.example.soundmark.ui.views.add
 
 import android.Manifest
+import android.location.Location
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -35,11 +36,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
-import com.example.soundmark.R
 import com.example.soundmark.ui.theme.SurfaceVariantDark
-import com.example.soundmark.ui.theme.SurfaceVariantDarker
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -135,7 +133,7 @@ fun AddScreen(
             SelectionItem(
                 label = uiState.selectedTrack?.title ?: "노래 선택",
                 isSelected = uiState.selectedTrack != null,
-                icon = ImageVector.vectorResource(R.drawable.ic_music),
+                icon = Icons.Default.PlayArrow,
                 onClick = { showSongBottomSheet = true }
             )
             
@@ -148,7 +146,7 @@ fun AddScreen(
             SelectionItem(
                 label = uiState.selectedPlace?.placeName ?: "장소 선택",
                 isSelected = uiState.selectedPlace != null,
-                icon = ImageVector.vectorResource(R.drawable.ic_location),
+                icon = Icons.Default.LocationOn,
                 onClick = { showBottomSheet = true }
             )
 
@@ -297,7 +295,7 @@ fun SelectionItem(
     Surface(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        color = SurfaceVariantDarker
+        color = SurfaceVariantDark
     ) {
         Row(
             modifier = Modifier
@@ -476,7 +474,10 @@ fun PlaceSelectionContent(
             Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.LocationOn, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = uiState.currentLocation?.placeName ?: "장소를 찾는 중...", style = MaterialTheme.typography.bodyLarge)
+                Column {
+                    Text(text = uiState.currentLocation?.placeName ?: "장소를 찾는 중...", style = MaterialTheme.typography.bodyLarge)
+                    Text(text = "현재 위치", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                }
             }
         }
 
@@ -494,10 +495,30 @@ fun PlaceSelectionContent(
                 contentPadding = PaddingValues(vertical = 8.dp)
             ) {
                 items(uiState.nearbyPlaces) { place ->
+                    val distance = uiState.currentLocation?.let { current ->
+                        val results = FloatArray(1)
+                        Location.distanceBetween(
+                            current.latitude, current.longitude,
+                            place.latitude, place.longitude,
+                            results
+                        )
+                        val dist = results[0]
+                        if (dist >= 1000) "%.1fkm".format(dist / 1000f) else "${dist.toInt()}m"
+                    }
+
                     ListItem(
                         headlineContent = { Text(place.placeName ?: "Unknown") },
                         supportingContent = { Text(place.address ?: "${place.latitude}, ${place.longitude}") },
                         leadingContent = { Icon(Icons.Default.LocationOn, contentDescription = null) },
+                        trailingContent = {
+                            distance?.let {
+                                Text(
+                                    text = it,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth().clickable { onPlaceSelected(place) }.padding(vertical = 4.dp)
                     )
                 }
