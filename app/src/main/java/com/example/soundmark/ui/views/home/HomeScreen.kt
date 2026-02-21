@@ -62,7 +62,7 @@ fun HomeScreen(
             FloatingActionButton(
                 onClick = onNavigateToAdd,
                 containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = ComposeColor.White,
+                contentColor = MaterialTheme.colorScheme.background,
                 shape = androidx.compose.foundation.shape.CircleShape
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add SoundMark")
@@ -127,7 +127,7 @@ fun ClusterDetailContent(
                 ListItem(
                     modifier = Modifier.clickable { onItemClick(pin.soundmarkId) },
                     headlineContent = { Text(pin.track.title) },
-                    supportingContent = { Text(pin.track.artist) },
+                    supportingContent = { Text(pin.track.artist, color = MaterialTheme.colorScheme.outline) },
                     leadingContent = {
                         AsyncImage(
                             model = pin.track.albumCoverUrl,

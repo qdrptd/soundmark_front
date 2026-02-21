@@ -99,7 +99,7 @@ private fun DetailPopupWrapper(
                 .wrapContentHeight()
                 .clickable(enabled = false) { },
             shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surface,
+            color = MaterialTheme.colorScheme.surfaceVariant,
             tonalElevation = 8.dp
         ) {
             content()
@@ -264,7 +264,7 @@ private fun LocationAndDateSection(
             style = TextStyle(
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.outline
             )
         )
         // 오른쪽: 등록 시간
@@ -306,7 +306,7 @@ private fun TrackInfoSection(track: Track) {
         )
         Text(
             text = track.artist,
-            style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color.Gray)
+            style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.outline)
         )
     }
 }
