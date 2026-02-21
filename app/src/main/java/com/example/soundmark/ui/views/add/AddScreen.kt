@@ -373,7 +373,7 @@ fun SongSelectionContent(
             items(uiState.searchedTracks) { track ->
                 ListItem(
                     headlineContent = { Text(track.title) },
-                    supportingContent = { Text(track.artist) },
+                    supportingContent = { Text(track.artist, color = MaterialTheme.colorScheme.outline) },
                     leadingContent = { 
                         AsyncImage(
                             model = track.albumCoverUrl,
