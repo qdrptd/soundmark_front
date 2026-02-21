@@ -1,11 +1,16 @@
 package com.example.soundmark
 
+import android.Manifest
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -28,6 +33,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.soundmark.ui.theme.SoundMarkTheme
+import com.example.soundmark.ui.views.add.AddScreen
 import dagger.hilt.android.AndroidEntryPoint
 import com.example.soundmark.ui.views.home.HomeScreen
 import com.example.soundmark.ui.views.home.HomeViewModel
@@ -48,6 +54,25 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         handleIntent(intent)
         setContent {
+            val locationPermissionLauncher = rememberLauncherForActivityResult(
+                ActivityResultContracts.RequestMultiplePermissions()
+            ) { permissions ->
+                val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                        permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+                if (!granted) {
+                    finish() // 권한 거부 시 앱 종료
+                }
+            }
+
+            LaunchedEffect(Unit) {
+                locationPermissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+            }
+
             SoundMarkTheme {
                 SoundMarkApp(onboardViewModel)
             }
@@ -74,6 +99,12 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
 
     // Collect login state from ViewModel
     val loginState by onboardViewModel.loginState.collectAsState()
+
+    val startDestination = if (loginState is LoginState.Success) {
+        NavigationDestination.HOME.name
+    } else {
+        NavigationDestination.ONBOARD.name
+    }
 
     val bottomBarDestinations = NavigationDestination.entries.filter { it.showInBottomBar }
     val showBottomBar = bottomBarDestinations.any { it.name == currentDestination?.route }
@@ -110,8 +141,12 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = NavigationDestination.ONBOARD.name,
-            modifier = Modifier.padding(innerPadding)
+            startDestination = startDestination,
+            modifier = Modifier.padding(innerPadding),
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None }
         ) {
             composable(NavigationDestination.ONBOARD.name) {
                 OnboardScreen(viewModel = onboardViewModel)
@@ -122,7 +157,8 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
                 HomeScreen(viewModel = homeViewModel,
                     onNavigateToSongDetail = { soundMarkId ->
                         navController.navigate("${NavigationDestination.SONG_DETAIL.name}/$soundMarkId")
-                    }
+                    },
+                    onNavigateToAdd = { navController.navigate(NavigationDestination.SONG_ADD.name) }
                 )
             }
 
@@ -143,6 +179,9 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
 
             composable(NavigationDestination.SONG_LIST.name) {
                 SongListScreen()
+            }
+            composable(NavigationDestination.SONG_ADD.name) {
+                AddScreen(onBack = { navController.popBackStack() })
             }
             composable(NavigationDestination.PROFILE.name) {
                 ProfileRoute()

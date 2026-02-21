@@ -6,6 +6,8 @@ import android.graphics.Color
 import android.graphics.Paint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -13,6 +15,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -28,18 +31,23 @@ import com.google.maps.android.compose.*
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
-    onNavigateToSongDetail: (String) -> Unit
+    onNavigateToSongDetail: (String) -> Unit,
+    onNavigateToAdd: () -> Unit
 ) {
     val clusters by viewModel.clusteredMarks.collectAsState()
     val selectedCluster by viewModel.selectedCluster.collectAsState()
+    val context = LocalContext.current
 
     // 기본 설정
     val sheetState = rememberModalBottomSheetState()
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(LatLng(37.5665, 126.9780), 15f)
     }
-    val uiSettings = MapUiSettings(zoomControlsEnabled = true)
-    val properties = MapProperties(isMyLocationEnabled = false)
+    val uiSettings = MapUiSettings(
+        zoomControlsEnabled = false,
+        myLocationButtonEnabled = true
+    )
+    val properties = MapProperties(isMyLocationEnabled = true)
 
     // 카메라의 줌 레벨이 변하는 것을 관찰하여 ViewModel에 전달
     LaunchedEffect(cameraPositionState.isMoving) {
@@ -48,7 +56,18 @@ fun HomeScreen(
         }
     }
 
-    Scaffold { padding ->
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToAdd,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = ComposeColor.White,
+                shape = androidx.compose.foundation.shape.CircleShape
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add SoundMark")
+            }
+        }
+    ) { padding ->
         GoogleMap(
             modifier = Modifier.padding(padding).fillMaxSize(),
             cameraPositionState = cameraPositionState,
@@ -96,7 +115,6 @@ fun ClusterDetailContent(
         Spacer(modifier = Modifier.height(16.dp))
         cluster.pins.forEach { pin ->
             ListItem(
-                modifier = Modifier.clickable { onItemClick(pin.soundmarkId) }, // 클릭 이벤트 연결
                 headlineContent = { Text(pin.track.title) },
                 supportingContent = { Text(pin.track.artist) },
                 leadingContent = {

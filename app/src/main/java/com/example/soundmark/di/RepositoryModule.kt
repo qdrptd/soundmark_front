@@ -1,5 +1,7 @@
 package com.example.soundmark.di
 
+import com.example.soundmark.data.repository.map.MapRepository
+import com.example.soundmark.data.repository.map.MapRepositoryImpl
 import com.example.soundmark.data.repository.profile.MarkRepository
 import com.example.soundmark.data.repository.profile.MarkRepositoryImpl
 import com.example.soundmark.data.repository.profile.UserRepository
@@ -31,6 +33,7 @@ abstract class RepositoryModule {
     ): AuthRepository
 
     @Binds
+
     @Singleton
     abstract fun bindMarkRepository(
         markRepositoryImpl: MarkRepositoryImpl
@@ -42,4 +45,10 @@ abstract class RepositoryModule {
         soundMarkDetailRepositoryImpl: SoundMarkDetailRepositoryImpl
     ): SoundMarkDetailRepository
 
+
+    @Binds
+    @Singleton
+    abstract fun bindMapRepository(
+        mapRepositoryImpl: MapRepositoryImpl
+    ): MapRepository
 }
