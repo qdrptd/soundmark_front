@@ -3,7 +3,6 @@ package com.example.soundmark.data.dto
 import com.example.soundmark.data.model.*
 import com.google.gson.annotations.SerializedName
 import java.text.SimpleDateFormat
-import java.time.ZonedDateTime
 import java.util.Locale
 import java.util.TimeZone
 
@@ -14,6 +13,8 @@ data class UserProfileDto(
     val id: Int,
     val spotify_id: String,
     val display_name: String,
+    val profile_image: Int,
+    val status_message: String,
     val email: String,
     val created_at: String,
     val follower_count: Int,
@@ -44,6 +45,8 @@ fun UserProfileDto.toProfileUserDomain(): ProfileUser = ProfileUser(
     name = this.display_name,
     email = this.email,
     profileImageUrl = null, // 필요 시 확장
+    profileImage = this.profile_image,
+    statusMessage = this.status_message,
     followerCount = this.follower_count,
     followingCount = this.following_count,
     soundMarkCount = this.recommendation_count,
@@ -55,7 +58,8 @@ fun UserProfileDto.toProfileUserDomain(): ProfileUser = ProfileUser(
 fun UserProfileDto.toUserDomain(): User = User(
     id = this.id.toString(),
     name = this.display_name,
-    profileImageUrl = null,
+    profileImage = this.profile_image,
+    statusMessage = this.status_message,
     followerCount = this.follower_count,
     followingCount = this.following_count,
     soundMarkCount = this.recommendation_count

@@ -3,6 +3,7 @@ package com.example.soundmark.data.network
 import com.example.soundmark.data.dto.CreateRecommendationRequestDto
 import com.example.soundmark.data.dto.JwtResponse
 import com.example.soundmark.data.dto.MapResponseDto
+import com.example.soundmark.data.dto.ProfileUpdateRequestDto
 import com.example.soundmark.data.dto.RecommendationDetailDto
 import com.example.soundmark.data.dto.SpotifyVerifyRequest
 import com.example.soundmark.data.dto.UserProfileDto
@@ -24,6 +25,11 @@ interface ApiService {
 
     @GET("api/v1/users/me")
     suspend fun getMyProfile(): UserProfileDto
+
+    @PATCH("api/v1/users/me")
+    suspend fun updateMyProfile(
+        @Body request: ProfileUpdateRequestDto
+    ): Response<UserProfileDto> // 리턴은 기존에 만든 UserProfileDto 재사용
 
     @GET("api/v1/users/{userId}")
     suspend fun getProfileByUserId(

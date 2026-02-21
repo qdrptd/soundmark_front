@@ -9,4 +9,5 @@ interface UserRepository {
     suspend fun getMyProfile(): Result<Profile>
 
     suspend fun getProfileByUserId(userId: String): Result<Profile>
+    suspend fun updateProfile(name: String?, imageId: Int?, message: String?): Result<User>
 }
