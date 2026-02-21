@@ -5,7 +5,8 @@ data class MapPin(
     val track: Track,
     val latitude: Double,
     val longitude: Double,
-    val isActive: Boolean
+    val isActive: Boolean,
+    val count: Int
 ) {
     companion object {
         val Default = MapPin(
@@ -13,7 +14,8 @@ data class MapPin(
             track = Track.Default,
             latitude = 37.5665,
             longitude = 126.9780,
-            isActive = true
+            isActive = true,
+            count = 2341
         )
     }
 }

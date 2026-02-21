@@ -6,6 +6,7 @@ import com.example.soundmark.data.model.Reaction
 import com.example.soundmark.data.model.ReactionType
 import com.example.soundmark.data.model.SoundMark
 import com.example.soundmark.data.repository.songDetail.SoundMarkDetailRepository
+import com.example.soundmark.util.LocationService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,20 +22,42 @@ sealed class MusicDetailUiState {
 
 @HiltViewModel
 class MusicDetailViewModel @Inject constructor(
-    private val repository: SoundMarkDetailRepository
+    private val repository: SoundMarkDetailRepository,
+    private val locationService: LocationService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<MusicDetailUiState>(MusicDetailUiState.Loading)
     val uiState: StateFlow<MusicDetailUiState> = _uiState
 
     fun loadSoundMark(id: String) {
+        // 1. 반드시 viewModelScope.launch를 먼저 열어줘야 합니다! (코루틴 시작)
         viewModelScope.launch {
             _uiState.value = MusicDetailUiState.Loading
-            repository.getSoundMarkById(id)
-                .onSuccess { _uiState.value = MusicDetailUiState.Success(it) }
-                .onFailure { _uiState.value = MusicDetailUiState.Error("데이터를 가져오지 못했습니다.") }
+
+            try {
+                // 2. 이제 이 안에서는 suspend 함수를 자유롭게 호출할 수 있습니다.
+                val currentLocation = locationService.getCurrentLocation()
+
+                if (currentLocation != null) {
+                    repository.getSoundMarkById(
+                        id = id,
+                        lat = currentLocation.latitude,
+                        lng = currentLocation.longitude
+                    ).onSuccess { soundMark ->
+                        _uiState.value = MusicDetailUiState.Success(soundMark)
+                    }.onFailure { exception ->
+                        _uiState.value = MusicDetailUiState.Error(exception.message ?: "데이터 로드 실패")
+                    }
+                } else {
+                    _uiState.value = MusicDetailUiState.Error("위치 정보를 가져올 수 없습니다.")
+                }
+            } catch (e: Exception) {
+                // 위치를 가져오는 도중 발생할 수 있는 에러 처리
+                _uiState.value = MusicDetailUiState.Error("위치 서비스 오류: ${e.message}")
+            }
         }
     }
+
     /**
      * 리액션을 추가하거나 취소하는 비즈니스 로직입니다.
      */

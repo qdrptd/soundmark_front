@@ -6,8 +6,6 @@ import com.example.soundmark.data.model.Profile
 import com.example.soundmark.data.model.SoundMark
 
 interface MarkRepository {
-    suspend fun getNearbyMarks(geoLocation: GeoLocation): Result<List<MapPin>>
-
-    suspend fun getSoundMarkById(markId: String): Result<SoundMark>
+    suspend fun getNearbyMarks(geoLocation: GeoLocation, userLocation: GeoLocation): Result<List<MapPin>>
 
 }

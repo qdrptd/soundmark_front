@@ -39,6 +39,7 @@ import com.example.soundmark.ui.theme.Black
 import com.example.soundmark.ui.theme.PointGreen
 import com.example.soundmark.util.bold
 import com.example.soundmark.util.size
+import com.example.soundmark.data.model.GeoLocation
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -73,7 +74,26 @@ fun HomeScreen(
             viewModel.onZoomChanged(cameraPositionState.position.zoom)
         }
     }
-    Box{
+
+    // 카메라 이동이 멈추는 시점을 감지
+    LaunchedEffect(cameraPositionState.isMoving) {
+        if (!cameraPositionState.isMoving) {
+            // 1. 줌 레벨 업데이트
+            viewModel.onZoomChanged(cameraPositionState.position.zoom)
+
+            // 2. 현재 지도 중심 좌표를 GeoLocation으로 변환하여 전달
+            val center = cameraPositionState.position.target
+            viewModel.onCameraMoved(
+                GeoLocation(
+                    latitude = center.latitude,
+                    longitude = center.longitude,
+                    placeName = null // 중심점 이름은 알 수 없으므로 null
+                )
+            )
+        }
+    }
+
+   Box{
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
@@ -196,8 +216,8 @@ fun createClusterIcon(
     val scaledIcon = Bitmap.createScaledBitmap(baseBitmap, iconSize, iconSize, false)
 
     // 여백 및 최종 비트맵 크기 계산
-    val shadowRadius = 15f  // 그림자 번짐 정도
-    val margin = 30f        // 그림자가 잘리지 않도록 여백 확보
+    val shadowRadius = 16f  // 그림자 번짐 정도
+    val margin = 32f        // 그림자가 잘리지 않도록 여백 확보
     val badgeHeight = if (count > 1) 50f else 0f
 
     val width = (iconSize + margin * 2).toInt()
@@ -213,10 +233,7 @@ fun createClusterIcon(
     val shadowPaint = Paint().apply {
         isAntiAlias = true
         color = Color.WHITE // 그림자의 토대가 되는 배경색
-        // setShadowLayer(반지름, x오프셋, y오프셋, 색상)
-        if (isActive) {
-            setShadowLayer(shadowRadius, 0f, 6f, Color.parseColor("#60000000"))
-        }
+        setShadowLayer(shadowRadius, 0f, 6f, Color.parseColor("#70000000"))
     }
     canvas.drawCircle(centerX, centerY, iconSize / 2f, shadowPaint)
 
