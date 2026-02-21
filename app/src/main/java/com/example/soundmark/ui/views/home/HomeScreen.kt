@@ -115,6 +115,7 @@ fun ClusterDetailContent(
         Spacer(modifier = Modifier.height(16.dp))
         cluster.pins.forEach { pin ->
             ListItem(
+                modifier = Modifier.clickable { onItemClick(pin.soundmarkId) },
                 headlineContent = { Text(pin.track.title) },
                 supportingContent = { Text(pin.track.artist) },
                 leadingContent = {
