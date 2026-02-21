@@ -96,6 +96,12 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
     // Collect login state from ViewModel
     val loginState by onboardViewModel.loginState.collectAsState()
 
+    val startDestination = if (loginState is LoginState.Success) {
+        NavigationDestination.HOME.name
+    } else {
+        NavigationDestination.ONBOARD.name
+    }
+
     val bottomBarDestinations = NavigationDestination.entries.filter { it.showInBottomBar }
     val showBottomBar = bottomBarDestinations.any { it.name == currentDestination?.route }
 
@@ -131,7 +137,7 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = NavigationDestination.ONBOARD.name,
+            startDestination = startDestination,
             modifier = Modifier.padding(innerPadding),
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None },
