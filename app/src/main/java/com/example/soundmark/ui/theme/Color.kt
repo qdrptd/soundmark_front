@@ -4,11 +4,12 @@ import androidx.compose.ui.graphics.Color
 
 // Main Theme Colors
 val BackgroundDark = Color(0xFF121212)
+val BackgroundDark2 = Color(0xFF1A1A1A)
 val PointGreen = Color(0xFF00FF9C)
 
 // Surface & Variations
 val SurfaceDark = Color(0xFF1E1E1E)
-val SurfaceVariantDark = Color(0xFF2C2C2C)
+val SurfaceVariantDark = Color(0xFF1A1A1A)
 
 // Secondary & Tertiary
 val SecondaryDark = Color(0xFFB0B0B0)

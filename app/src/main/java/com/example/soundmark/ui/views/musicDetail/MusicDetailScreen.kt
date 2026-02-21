@@ -99,7 +99,7 @@ private fun DetailPopupWrapper(
                 .wrapContentHeight()
                 .clickable(enabled = false) { },
             shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surface,
+            color = MaterialTheme.colorScheme.surfaceVariant,
             tonalElevation = 8.dp
         ) {
             content()
