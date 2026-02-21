@@ -15,7 +15,7 @@ enum class NavigationDestination(
     private val definedRoute: String? = null
 ) {
     HOME("홈", iconResId = R.drawable.ic_home, showInBottomBar = true),
-    SONG_LIST("피드", iconResId = R.drawable.ic_feed, showInBottomBar = true),
+    SONG_LIST("추천", iconResId = R.drawable.ic_feed, showInBottomBar = true),
     SONG_DETAIL("Song Detail", null, null, false, "SONG_DETAIL/{soundMarkId}"),
     SONG_ADD("Song Add"),
     PROFILE("마이페이지", iconResId = R.drawable.ic_person, showInBottomBar = true, definedRoute = "PROFILE/{userId}"),

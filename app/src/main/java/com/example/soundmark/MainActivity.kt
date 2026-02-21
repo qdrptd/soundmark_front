@@ -59,7 +59,8 @@ import com.example.soundmark.ui.views.onboard.OnboardScreen
 import com.example.soundmark.ui.views.onboard.OnboardViewModel
 import com.example.soundmark.ui.views.profile.EditProfileScreen
 import com.example.soundmark.ui.views.profile.ProfileRoute
-import com.example.soundmark.ui.views.songlist.SongListScreen
+import com.example.soundmark.ui.views.recommendation.RecommendationScreen
+import com.example.soundmark.ui.views.recommendation.RecommendationViewModel
 
 private object NoIndication : IndicationNodeFactory {
     override fun create(interactionSource: InteractionSource): Modifier.Node {
@@ -241,7 +242,8 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
             }
 
             composable(NavigationDestination.SONG_LIST.name) {
-                SongListScreen()
+                val recommendationViewModel: RecommendationViewModel = hiltViewModel()
+                RecommendationScreen(viewModel = recommendationViewModel)
             }
             composable(NavigationDestination.SONG_ADD.name) {
                 AddScreen(onBack = { navController.popBackStack() })
