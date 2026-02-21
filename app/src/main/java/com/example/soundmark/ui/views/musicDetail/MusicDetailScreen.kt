@@ -32,14 +32,6 @@ import com.example.soundmark.data.model.ReactionType
 import com.example.soundmark.data.model.SoundMark
 import com.example.soundmark.data.model.Track
 
-// 1. 사용할 리액션 타입 정의 (데이터 모델에 정의되어 있다고 가정)
-val availableReactionTypes = listOf(
-    ReactionType.FIRE,
-    ReactionType.SAD,
-    ReactionType.LOVE,
-    ReactionType.CLAP
-)
-
 @Composable
 fun MusicDetailScreen(
     soundMarkId: String,
@@ -131,7 +123,7 @@ private fun MusicDetailContent(
         Spacer(Modifier.height(16.dp))
 
         // 4. 중앙 리액션 통계 (🔥 1,234)
-        CentralReactionStats(count = 1234, icon = "🔥")
+        TopReactionsSummary(reactions = soundMark.reactions)
 
         Spacer(Modifier.height(20.dp))
 
@@ -240,14 +232,44 @@ private fun TrackInfoSection(track: Track) {
 
 /** [소부품 C] 중앙 리액션 통계 */
 @Composable
-private fun CentralReactionStats(count: Int, icon: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(text = icon, fontSize = 20.sp)
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = String.format("%,d", count), // 1,234 형태로 포맷팅
-            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        )
+private fun TopReactionsSummary(reactions: List<Reaction>) {
+    // 1. 카운트 순으로 정렬하여 상위 4개 추출
+    val top4Reactions = reactions
+        .sortedByDescending { it.count }
+        .filter { it.count > 0 }
+        .take(4)
+
+    // 2. 전체 리액션 수 합계
+    val totalCount = reactions.sumOf { it.count }
+
+    if (totalCount > 0) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            // 이모지들을 겹치거나 나열하여 표시
+            Box(contentAlignment = Alignment.CenterStart) {
+                top4Reactions.forEachIndexed { index, reaction ->
+                    Text(
+                        text = reaction.type.emoji,
+                        fontSize = 18.sp,
+                        modifier = Modifier.padding(start = (index * 14).dp) // 살짝 겹치는 효과
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(if (top4Reactions.size > 1) (top4Reactions.size * 10).dp else 8.dp))
+
+            // 총 숫자 표시 (예: 1,234)
+            Text(
+                text = String.format("%,d", totalCount),
+                style = TextStyle(
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            )
+        }
     }
 }
 
@@ -286,36 +308,42 @@ private fun SpotifyButton(spotifyUrl: String, onClick: () -> Unit) {
         Text("Spotify에서 듣기", fontSize = 16.sp, fontWeight = FontWeight.Bold)
     }
 }
-
+/** [소부품 F] 하단 리액션 바
+ * 이제 고정된 Enum이 아니라 서버나 Mock에서 내려주는 reactions 리스트를 그대로 그립니다.
+ */
 @Composable
 private fun BottomReactionBar(
-    reactions: List<Reaction>,
+    reactions: List<Reaction>, // [🔥 10개, ❤️ 5개, 👏 2개 ...] 형태로 들어옴
     onReactionClick: (ReactionType) -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // 1. Others 버튼 (스케치 좌측 하단)
+        // 1. Others 버튼 (항상 맨 앞에 배치하거나 스케치 위치에 고정)
         ReactionButton(
             icon = ReactionType.OTHERS.emoji,
             label = "others",
             isSelected = false,
-            onClick = { onReactionClick(ReactionType.OTHERS) }
+            onClick = { /* 전체 리액션 리스트 팝업 띄우기 등 */ }
         )
 
-        // 2. 나머지 주요 리액션들
+        Spacer(modifier = Modifier.width(16.dp))
+
+        // 2. 동적 리액션 리스트
+        // 데이터가 10개든 20개든 가로로 쭉 나열됩니다.
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(horizontal = 8.dp)
+            modifier = Modifier.weight(1f)
         ) {
-            items(availableReactionTypes) { type ->
+            items(reactions) { reaction ->
                 ReactionButton(
-                    icon = type.emoji,
-                    label = "", // 개별 버튼에는 레이블 생략 가능
-                    isSelected = reactions.any { it.type == type && it.reacted },
-                    onClick = { onReactionClick(type) }
+                    icon = reaction.type.emoji,
+                    label = if (reaction.count > 0) "${reaction.count}" else "",
+                    isSelected = reaction.isReactedByMe,
+                    onClick = { onReactionClick(reaction.type) }
                 )
             }
         }
