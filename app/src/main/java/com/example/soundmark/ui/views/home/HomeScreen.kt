@@ -127,7 +127,7 @@ fun ClusterDetailContent(
                 ListItem(
                     modifier = Modifier.clickable { onItemClick(pin.soundmarkId) },
                     headlineContent = { Text(pin.track.title) },
-                    supportingContent = { Text(pin.track.artist) },
+                    supportingContent = { Text(pin.track.artist, color = MaterialTheme.colorScheme.outline) },
                     leadingContent = {
                         AsyncImage(
                             model = pin.track.albumCoverUrl,

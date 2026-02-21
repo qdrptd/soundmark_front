@@ -100,8 +100,7 @@ fun ProfileRoute(userId: String) {
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = "@${profile.user.name.lowercase()}",
-                                        style = MaterialTheme.typography.bodySmall.size(14),
-                                        color = MaterialTheme.colorScheme.primary,
+                                        style = MaterialTheme.typography.bodySmall.size(14).color(MaterialTheme.colorScheme.outline),
                                         maxLines = 1
                                     )
                                     Spacer(modifier = Modifier.height(12.dp))
@@ -229,7 +228,7 @@ fun SoundMarkItem(soundMark: SoundMark, isMe: Boolean) {
                 )
                 Text(
                     text = soundMark.track.artist,
-                    style = MaterialTheme.typography.bodySmall.color(MaterialTheme.colorScheme.onSurfaceVariant),
+                    style = MaterialTheme.typography.bodySmall.color(MaterialTheme.colorScheme.outline),
                     modifier = Modifier.blurIf(!isMe, 6.dp)
                 )
                 
@@ -237,7 +236,7 @@ fun SoundMarkItem(soundMark: SoundMark, isMe: Boolean) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "📍 ${soundMark.location.placeName ?: "Unknown Location"}",
-                    style = MaterialTheme.typography.labelSmall.color(MaterialTheme.colorScheme.primary)
+                    style = MaterialTheme.typography.labelSmall.color(MaterialTheme.colorScheme.outline)
                 )
                 if (!soundMark.message.isNullOrBlank()) {
                     Text(
