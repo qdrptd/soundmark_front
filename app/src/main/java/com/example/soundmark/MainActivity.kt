@@ -33,6 +33,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -59,6 +62,7 @@ import com.example.soundmark.ui.views.onboard.OnboardScreen
 import com.example.soundmark.ui.views.onboard.OnboardViewModel
 import com.example.soundmark.ui.views.profile.EditProfileScreen
 import com.example.soundmark.ui.views.profile.ProfileRoute
+import com.example.soundmark.ui.views.splash.SplashScreen
 import com.example.soundmark.ui.views.recommendation.RecommendationScreen
 import com.example.soundmark.ui.views.recommendation.RecommendationViewModel
 
@@ -119,21 +123,26 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
-    val navController = rememberNavController()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = navBackStackEntry?.destination
+    var showSplash by remember { mutableStateOf(true) }
 
-    // Collect login state from ViewModel
-    val loginState by onboardViewModel.loginState.collectAsState()
-
-    val startDestination = if (loginState is LoginState.Success) {
-        NavigationDestination.HOME.name
+    if (showSplash) {
+        SplashScreen(onSplashFinished = { showSplash = false })
     } else {
-        NavigationDestination.ONBOARD.name
-    }
+        val navController = rememberNavController()
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentDestination = navBackStackEntry?.destination
 
-    val bottomBarDestinations = NavigationDestination.entries.filter { it.showInBottomBar }
-    val showBottomBar = bottomBarDestinations.any { it.route == currentDestination?.route }
+        // Collect login state from ViewModel
+        val loginState by onboardViewModel.loginState.collectAsState()
+
+        val startDestination = if (loginState is LoginState.Success) {
+            NavigationDestination.HOME.name
+        } else {
+            NavigationDestination.ONBOARD.name
+        }
+
+        val bottomBarDestinations = NavigationDestination.entries.filter { it.showInBottomBar }
+        val showBottomBar = bottomBarDestinations.any { it.route == currentDestination?.route }
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -198,48 +207,48 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
                 }
             }
         ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = startDestination,
-            modifier = Modifier.padding(innerPadding),
-            enterTransition = { EnterTransition.None },
-            exitTransition = { ExitTransition.None },
-            popEnterTransition = { EnterTransition.None },
-            popExitTransition = { ExitTransition.None }
-        ) {
-            composable(NavigationDestination.ONBOARD.name) {
-                OnboardScreen(viewModel = onboardViewModel)
-            }
+            NavHost(
+                navController = navController,
+                startDestination = startDestination,
+                modifier = Modifier.padding(innerPadding),
+                enterTransition = { EnterTransition.None },
+                exitTransition = { ExitTransition.None },
+                popEnterTransition = { EnterTransition.None },
+                popExitTransition = { ExitTransition.None }
+            ) {
+                composable(NavigationDestination.ONBOARD.name) {
+                    OnboardScreen(viewModel = onboardViewModel)
+                }
 
-            composable(NavigationDestination.HOME.name) {
-                val homeViewModel: HomeViewModel = hiltViewModel()
-                HomeScreen(viewModel = homeViewModel,
-                    onNavigateToSongDetail = { soundMarkId ->
-                        navController.navigate("${NavigationDestination.SONG_DETAIL.name}/$soundMarkId")
-                    },
-                    onNavigateToAdd = { navController.navigate(NavigationDestination.SONG_ADD.name) }
-                )
-            }
+                composable(NavigationDestination.HOME.name) {
+                    val homeViewModel: HomeViewModel = hiltViewModel()
+                    HomeScreen(viewModel = homeViewModel,
+                        onNavigateToSongDetail = { soundMarkId ->
+                            navController.navigate("${NavigationDestination.SONG_DETAIL.name}/$soundMarkId")
+                        },
+                        onNavigateToAdd = { navController.navigate(NavigationDestination.SONG_ADD.name) }
+                    )
+                }
 
-            dialog(
-                route = NavigationDestination.SONG_DETAIL.route,
-                arguments = listOf(navArgument("soundMarkId") { type = NavType.StringType }),
-                dialogProperties = DialogProperties(
-                    dismissOnBackPress = true,
-                    dismissOnClickOutside = true,
-                    usePlatformDefaultWidth = false // 가로 길이를 시스템 기본값이 아닌 커스텀하게 사용 가능
-                )
-            ) { backStackEntry ->
-                val soundMarkId = backStackEntry.arguments?.getString("soundMarkId") ?: ""
-                val detailViewModel: MusicDetailViewModel = hiltViewModel()
+                dialog(
+                    route = NavigationDestination.SONG_DETAIL.route,
+                    arguments = listOf(navArgument("soundMarkId") { type = NavType.StringType }),
+                    dialogProperties = DialogProperties(
+                        dismissOnBackPress = true,
+                        dismissOnClickOutside = true,
+                        usePlatformDefaultWidth = false // 가로 길이를 시스템 기본값이 아닌 커스텀하게 사용 가능
+                    )
+                ) { backStackEntry ->
+                    val soundMarkId = backStackEntry.arguments?.getString("soundMarkId") ?: ""
+                    val detailViewModel: MusicDetailViewModel = hiltViewModel()
 
-                MusicDetailScreen(
-                    soundMarkId = soundMarkId,
-                    viewModel = detailViewModel,
-                    onBackClick = { navController.popBackStack() },
-                    onProfileClick = { userId -> /* TODO: 프로필 이동 로직 */ }
-                )
-            }
+                    MusicDetailScreen(
+                        soundMarkId = soundMarkId,
+                        viewModel = detailViewModel,
+                        onBackClick = { navController.popBackStack() },
+                        onProfileClick = { userId -> /* TODO: 프로필 이동 로직 */ }
+                    )
+                }
 
             composable(NavigationDestination.SONG_LIST.name) {
                 val recommendationViewModel: RecommendationViewModel = hiltViewModel()
@@ -276,27 +285,28 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
                 val message = backStackEntry.arguments?.getString("message") ?: ""
                 val imageId = backStackEntry.arguments?.getInt("imageId") ?: 1
 
-                EditProfileScreen(
-                    initialName = name,
-                    initialMessage = message,
-                    initialImageId = imageId,
-                    onNavigateBack = { navController.popBackStack() }
-                )
+                    EditProfileScreen(
+                        initialName = name,
+                        initialMessage = message,
+                        initialImageId = imageId,
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                }
             }
         }
-    }
 
-    // Effect to handle navigation when login state changes
-    LaunchedEffect(loginState) {
-        if (loginState is LoginState.Success) {
-            navController.navigate(NavigationDestination.HOME.name) {
-                popUpTo(NavigationDestination.ONBOARD.name) { inclusive = true }
-            }
-        } else if (loginState is LoginState.Idle) {
-            // Handle session expiration/logout: navigate back to Onboard
-            if (currentDestination?.route != NavigationDestination.ONBOARD.name) {
-                navController.navigate(NavigationDestination.ONBOARD.name) {
-                    popUpTo(0) { inclusive = true }
+        // Effect to handle navigation when login state changes
+        LaunchedEffect(loginState) {
+            if (loginState is LoginState.Success) {
+                navController.navigate(NavigationDestination.HOME.name) {
+                    popUpTo(NavigationDestination.ONBOARD.name) { inclusive = true }
+                }
+            } else if (loginState is LoginState.Idle) {
+                // Handle session expiration/logout: navigate back to Onboard
+                if (currentDestination?.route != NavigationDestination.ONBOARD.name) {
+                    navController.navigate(NavigationDestination.ONBOARD.name) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             }
         }

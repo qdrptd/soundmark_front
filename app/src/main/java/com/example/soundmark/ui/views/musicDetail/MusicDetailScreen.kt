@@ -230,11 +230,11 @@ private fun TopBarSection(
             modifier = Modifier.align(Alignment.Center)
         ) {
             Text(
-                text = "by $authorName",
+                text = "$authorName",
                 style = TextStyle(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color.Gray
+                    color = Color.White
                 )
             )
         }
