@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.soundmark.data.model.GeoLocation
 import com.example.soundmark.data.model.Track
-import com.example.soundmark.data.mock.MockDataSource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,11 +37,14 @@ fun AddScreen(
     val uiState by viewModel.uiState.collectAsState()
     var showBottomSheet by remember { mutableStateOf(false) }
     var showSongBottomSheet by remember { mutableStateOf(false) }
+    
     val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
+        skipPartiallyExpanded = true,
+        confirmValueChange = { it != SheetValue.Hidden }
     )
     val songSheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
+        skipPartiallyExpanded = true,
+        confirmValueChange = { it != SheetValue.Hidden }
     )
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -222,10 +224,36 @@ fun AddScreen(
         }
     }
 
+    if (showSongBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showSongBottomSheet = false },
+            sheetState = songSheetState,
+            dragHandle = {
+                BottomSheetDefaults.DragHandle(
+                    modifier = Modifier.clickable { showSongBottomSheet = false }
+                )
+            }
+        ) {
+            SongSelectionContent(
+                uiState = uiState,
+                onSearch = { viewModel.searchTracks(it) },
+                onTrackSelected = { track ->
+                    viewModel.onTrackSelected(track)
+                    showSongBottomSheet = false
+                }
+            )
+        }
+    }
+
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
-            sheetState = sheetState
+            sheetState = sheetState,
+            dragHandle = {
+                BottomSheetDefaults.DragHandle(
+                    modifier = Modifier.clickable { showBottomSheet = false }
+                )
+            }
         ) {
             PlaceSelectionContent(
                 uiState = uiState,
@@ -245,43 +273,29 @@ fun AddScreen(
             )
         }
     }
-
-
-    if (showSongBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showSongBottomSheet = false },
-            sheetState = songSheetState
-        ) {
-            SongSelectionContent(
-                onTrackSelected = { track ->
-                    viewModel.onTrackSelected(track)
-                    showSongBottomSheet = false
-                }
-            )
-        }
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SongSelectionContent(
+    uiState: AddUiState,
+    onSearch: (String) -> Unit,
     onTrackSelected: (Track) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    val tracks = remember { MockDataSource.mockTracks }
     val listState = rememberLazyListState()
 
-    // Precise connection to prevent sheet drag only when necessary
+    LaunchedEffect(searchQuery) {
+        onSearch(searchQuery)
+    }
+
     val nestedScrollConnection = remember(listState) {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                val isAtTop = !listState.canScrollBackward
-                return if (available.y > 0 && isAtTop) available else Offset.Zero
+                return if (available.y > 0 && !listState.canScrollBackward) available else Offset.Zero
             }
-
             override suspend fun onPreFling(available: Velocity): Velocity {
-                val isAtTop = !listState.canScrollBackward
-                return if (available.y > 0 && isAtTop) available else Velocity.Zero
+                return if (available.y > 0 && !listState.canScrollBackward) available else Velocity.Zero
             }
         }
     }
@@ -299,15 +313,18 @@ fun SongSelectionContent(
             modifier = Modifier.padding(vertical = 16.dp)
         )
 
-        // Search Bar
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
             placeholder = { Text("곡 제목, 아티스트 검색") },
-            leadingIcon = { Icon(Icons.Default.PlayArrow, contentDescription = null) }, // Using PlayArrow for music context
+            leadingIcon = { 
+                if (uiState.isSearching) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                } else {
+                    Icon(Icons.Default.PlayArrow, contentDescription = null)
+                }
+            },
             trailingIcon = {
                 if (searchQuery.isNotEmpty()) {
                     IconButton(onClick = { searchQuery = "" }) {
@@ -321,28 +338,21 @@ fun SongSelectionContent(
 
         LazyColumn(
             state = listState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .nestedScroll(nestedScrollConnection),
+            modifier = Modifier.fillMaxWidth().weight(1f).nestedScroll(nestedScrollConnection),
             contentPadding = PaddingValues(vertical = 8.dp)
         ) {
-            val filteredTracks = if (searchQuery.isEmpty()) tracks else {
-                tracks.filter { 
-                    it.title.contains(searchQuery, ignoreCase = true) || 
-                    it.artist.contains(searchQuery, ignoreCase = true) 
-                }
-            }
-
-            items(filteredTracks) { track ->
+            items(uiState.searchedTracks) { track ->
                 ListItem(
                     headlineContent = { Text(track.title) },
                     supportingContent = { Text(track.artist) },
-                    leadingContent = { Icon(Icons.Default.PlayArrow, contentDescription = null) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onTrackSelected(track) }
-                        .padding(vertical = 4.dp)
+                    leadingContent = { 
+//                        AsyncImage(
+//                            model = track.albumCoverUrl,
+//                            contentDescription = null,
+//                            modifier = Modifier.size(40.dp)
+//                        )
+                    },
+                    modifier = Modifier.fillMaxWidth().clickable { onTrackSelected(track) }.padding(vertical = 4.dp)
                 )
             }
         }
@@ -360,34 +370,13 @@ fun PlaceSelectionContent(
 ) {
     val listState = rememberLazyListState()
 
-    // Intercept scroll/fling events so they don't reach the bottom sheet and trigger dismissal
-    val nestedScrollConnection = remember {
+    val nestedScrollConnection = remember(listState) {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                // When pulling down (y > 0) at the very top of the list,
-                // we consume the delta here to prevent the sheet from starting to drag.
-                val isAtTop = listState.firstVisibleItemIndex == 0 &&
-                             listState.firstVisibleItemScrollOffset == 0
-                return if (available.y > 0 && isAtTop) {
-                    available
-                } else {
-                    Offset.Zero
-                }
+                return if (available.y > 0 && !listState.canScrollBackward) available else Offset.Zero
             }
-
-            override fun onPostScroll(
-                consumed: Offset,
-                available: Offset,
-                source: NestedScrollSource
-            ): Offset {
-                // If we have scroll delta available after the list has consumed its part (available.y != 0),
-                // we consume it here to prevent the BottomSheet from moving/closing.
-                return if (available.y > 0) available else Offset.Zero
-            }
-
-            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-                // Consume all remaining downward fling velocity to prevent sheet dismissal
-                return if (available.y > 0) available else Velocity.Zero
+            override suspend fun onPreFling(available: Velocity): Velocity {
+                return if (available.y > 0 && !listState.canScrollBackward) available else Velocity.Zero
             }
         }
     }
@@ -395,7 +384,7 @@ fun PlaceSelectionContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.8f) // Set a stable height for the sheet content
+            .fillMaxHeight(0.8f)
             .padding(horizontal = 16.dp)
             .padding(top = 8.dp)
     ) {
@@ -408,64 +397,28 @@ fun PlaceSelectionContent(
         Text("현재 장소", style = MaterialTheme.typography.titleMedium)
 
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            ),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
             onClick = { uiState.currentLocation?.let { onPlaceSelected(it) } }
         ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.LocationOn, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = uiState.currentLocation?.placeName ?: "장소를 찾는 중...",
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                Text(text = uiState.currentLocation?.placeName ?: "장소를 찾는 중...", style = MaterialTheme.typography.bodyLarge)
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
         Text("주변 장소", style = MaterialTheme.typography.titleMedium)
 
         if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
-        } else if (uiState.permissionDenied) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(text = "위치 권한이 거부되었습니다.")
-                Button(onClick = onPermissionRetry, modifier = Modifier.padding(top = 8.dp)) {
-                    Text("권한 다시 요청")
-                }
-            }
-        } else if (uiState.error != null) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(text = "에러: ${uiState.error}", color = MaterialTheme.colorScheme.error)
-                Button(onClick = { onRetry() }, modifier = Modifier.padding(top = 8.dp)) {
-                    Text("다시 시도")
-                }
-            }
         } else {
             LazyColumn(
                 state = listState,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .nestedScroll(nestedScrollConnection), // Apply the nested scroll connection
+                modifier = Modifier.fillMaxWidth().weight(1f).nestedScroll(nestedScrollConnection),
                 contentPadding = PaddingValues(vertical = 8.dp)
             ) {
                 items(uiState.nearbyPlaces) { place ->
@@ -473,9 +426,7 @@ fun PlaceSelectionContent(
                         headlineContent = { Text(place.placeName ?: "Unknown") },
                         supportingContent = { Text("${place.latitude}, ${place.longitude}") },
                         leadingContent = { Icon(Icons.Default.LocationOn, contentDescription = null) },
-                        modifier = Modifier
-                            .padding(vertical = 4.dp)
-                            .clickable { onPlaceSelected(place) }
+                        modifier = Modifier.fillMaxWidth().clickable { onPlaceSelected(place) }.padding(vertical = 4.dp)
                     )
                 }
             }

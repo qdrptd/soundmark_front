@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-import com.example.soundmark.data.network.SpotifyApi
+import com.example.soundmark.data.repository.spotify.SpotifyRepository
 
 data class AddUiState(
     val isLoading: Boolean = false,
@@ -30,7 +30,7 @@ data class AddUiState(
 @HiltViewModel
 class AddViewModel @Inject constructor(
     private val mapRepository: MapRepository,
-    private val spotifyApi: SpotifyApi,
+    private val spotifyRepository: SpotifyRepository,
     private val locationService: LocationService
 ) : ViewModel() {
 
@@ -53,19 +53,10 @@ class AddViewModel @Inject constructor(
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isSearching = true)
-            try {
-                val response = spotifyApi.searchTracks(query)
-                val tracks = response.tracks.items.map { dto ->
-                    Track(
-                        title = dto.name,
-                        artist = dto.artists.firstOrNull()?.name ?: "Unknown",
-                        albumCoverUrl = dto.album.images.firstOrNull()?.url ?: "",
-                        spotifyUrl = dto.externalUrls["spotify"] ?: "",
-                        previewUrl = dto.previewUrl
-                    )
-                }
+            val result = spotifyRepository.searchTracks(query)
+            result.onSuccess { tracks ->
                 _uiState.value = _uiState.value.copy(searchedTracks = tracks, isSearching = false)
-            } catch (e: Exception) {
+            }.onFailure { e ->
                 _uiState.value = _uiState.value.copy(isSearching = false, error = "곡 검색 실패: ${e.message}")
             }
         }
