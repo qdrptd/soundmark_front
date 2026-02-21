@@ -82,5 +82,5 @@ interface ApiService {
     suspend fun getPopularTracks(): Response<TracksResponseDto>
 
     @GET("/api/v1/users/me/place-recommendations")
-    suspend fun getPlaceRecommendations(): PlaceRecommendationResponseDto
+    suspend fun getPlaceRecommendations(@Header("X-Spotify-Token") spotifyToken: String): PlaceRecommendationResponseDto
 }
