@@ -3,6 +3,7 @@ package com.example.soundmark.ui.views.profile
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -31,7 +32,8 @@ import com.example.soundmark.data.model.SoundMark
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileRoute(userId: String,
-                 onNavigateToEdit: (String, String, Int) -> Unit) {
+                 onNavigateToEdit: (String, String, Int) -> Unit,
+                 onNavigateToSongDetail: (String) -> Unit) {
     val viewModel = hiltViewModel<ProfileViewModel>()
     val uiState by viewModel.uiState.collectAsState()
     var isExpanded by remember { mutableStateOf(false) }
@@ -175,7 +177,13 @@ fun ProfileRoute(userId: String,
                         }
 
                         items(displayList) { soundMark ->
-                            SoundMarkItem(soundMark = soundMark, isMe = uiState.isMe)
+                            SoundMarkItem(
+                                soundMark = soundMark,
+                                isMe = uiState.isMe,
+                                onItemClick = { id ->
+                                    // 상세 페이지로 이동!
+                                    onNavigateToSongDetail(id)
+                                })
                             Spacer(modifier = Modifier.height(12.dp))
                         }
 
@@ -219,9 +227,11 @@ fun EmptySoundMarkView() {
 
 
 @Composable
-fun SoundMarkItem(soundMark: SoundMark, isMe: Boolean) {
+fun SoundMarkItem(soundMark: SoundMark, isMe: Boolean, onItemClick: (String) -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onItemClick(soundMark.id) }, // 클릭 시 ID 전달,
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
     ) {

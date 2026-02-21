@@ -255,6 +255,9 @@ fun SoundMarkApp(onboardViewModel: OnboardViewModel) {
                     onNavigateToEdit = { name, message, imageId ->
                         // 인자를 포함하여 이동
                         navController.navigate("profile_edit?name=$name&message=$message&imageId=$imageId")
+                    },
+                    onNavigateToSongDetail = { songId ->
+                        navController.navigate("song_detail/$songId")
                     }
                 )
             }
