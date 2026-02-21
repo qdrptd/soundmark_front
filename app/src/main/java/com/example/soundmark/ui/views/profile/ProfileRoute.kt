@@ -1,6 +1,7 @@
 package com.example.soundmark.ui.views.profile
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import com.example.soundmark.util.*
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -76,14 +78,15 @@ fun ProfileRoute(userId: String,
                                 horizontalArrangement = Arrangement.Center
                             ) {
                                 // Profile Image
-                                AsyncImage(
-                                    model = profile.user.profileImageUrl ?: "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y",
-                                    contentDescription = null,
+                                Image(
+                                    painter = painterResource(id = getIconResById(profile.user.profileImage)),
+                                    contentDescription = "Profile Icon",
                                     modifier = Modifier
                                         .size(80.dp)
                                         .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.secondaryContainer),
-                                    contentScale = ContentScale.Crop
+                                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                                        .padding(5.dp), // 아이콘이 배경 원 테두리에 붙지 않게 여백 추가
+                                    contentScale = ContentScale.Fit // 캐릭터 전신이 다 보이도록 Fit 사용
                                 )
 
                                 Spacer(modifier = Modifier.width(16.dp))

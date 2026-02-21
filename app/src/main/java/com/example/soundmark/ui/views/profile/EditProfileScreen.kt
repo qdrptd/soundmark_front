@@ -2,15 +2,21 @@ package com.example.soundmark.ui.views.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -28,7 +34,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -73,35 +81,43 @@ fun EditProfileScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
-            Text("나의 성장 아이콘", style = MaterialTheme.typography.labelLarge)
+            Text("나의 아이콘", style = MaterialTheme.typography.labelLarge)
 
-            // 아이콘 선택 리스트 (1~5)
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+            // 아이콘 선택 리스트 (1~9, 3x3 그리드)
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3), // 3열 고정
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(360.dp), // 3줄이 충분히 들어갈 높이
+                contentPadding = PaddingValues(vertical = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                (1..5).forEach { id ->
+                items(9) { index ->
+                    val id = index + 1
                     val isSelected = selectedId == id
-                    IconButton(
-                        onClick = { viewModel.selectedImageId.value = id },
+
+                    Box(
                         modifier = Modifier
-                            .size(60.dp)
+                            .aspectRatio(1f) // 정사각형 유지
+                            .clip(CircleShape)
                             .background(
-                                if (isSelected) PointGreen.copy(alpha = 0.2f) else Color.Transparent,
-                                CircleShape
+                                if (isSelected) PointGreen.copy(alpha = 0.2f) else Color.Transparent
                             )
                             .border(
                                 if (isSelected) 2.dp else 0.dp,
                                 if (isSelected) PointGreen else Color.Transparent,
                                 CircleShape
                             )
+                            .clickable { viewModel.selectedImageId.value = id },
+                        contentAlignment = Alignment.Center
                     ) {
-                        // 아이콘 리소스 (id에 따라 대응)
+                        // 개별 아이콘 버튼
                         Icon(
                             painter = painterResource(id = getIconResById(id)),
-                            contentDescription = null,
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(40.dp)
+                            contentDescription = "Icon $id",
+                            tint = Color.Unspecified, // 원본 색상 유지
+                            modifier = Modifier.size(64.dp) // 이미지 크기에 맞춰 조절
                         )
                     }
                 }
@@ -132,9 +148,13 @@ fun EditProfileScreen(
 
 // 아이콘 매핑 유틸
 fun getIconResById(id: Int) = when(id) {
-    1 -> R.drawable.icon1
-    2 -> R.drawable.icon2
-    3 -> R.drawable.icon3
-    4 -> R.drawable.icon4
-    else -> R.drawable.icon5
+    1 -> R.drawable.icon_profile1
+    2 -> R.drawable.icon_profile2
+    3 -> R.drawable.icon_profile3
+    4 -> R.drawable.icon_profile4
+    5 -> R.drawable.icon_profile5
+    6 -> R.drawable.icon_profile6
+    7 -> R.drawable.icon_profile7
+    8 -> R.drawable.icon_profile8
+    else -> R.drawable.icon_profile4
 }
