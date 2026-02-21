@@ -17,7 +17,7 @@ enum class NavigationDestination(
     SONG_LIST("Song List", Icons.Default.List, true),
     SONG_DETAIL("Song Detail", null, false, "SONG_DETAIL/{soundMarkId}"),
     SONG_ADD("Song Add"),
-    PROFILE("Profile", Icons.Default.AccountCircle, true),
+    PROFILE("Profile", Icons.Default.AccountCircle, true, "PROFILE/{userId}"),
     ONBOARD("Onboard");
 
     val route: String

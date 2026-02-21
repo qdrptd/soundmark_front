@@ -1,6 +1,7 @@
 package com.example.soundmark.data.repository.profile
 
 import com.example.soundmark.data.model.Profile
+import com.example.soundmark.data.model.User
 import com.example.soundmark.data.network.ApiService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -9,6 +10,10 @@ import javax.inject.Singleton
 class UserRepositoryImpl @Inject constructor(
     private val apiService: ApiService,
 ) : UserRepository {
+
+    override suspend fun getMe(): Result<User> {
+        return Result.success(User.Default)
+    }
 
     override suspend fun getMyProfile(): Result<Profile> {
         try{

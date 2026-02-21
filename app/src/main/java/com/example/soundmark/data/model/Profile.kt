@@ -8,8 +8,18 @@ data class Profile(
     companion object {
         val Default = Profile(
             user = User.Default,
-            mySoundMarks = emptyList(),
-            likedSoundMarks = emptyList()
+            mySoundMarks = listOf(
+                SoundMark.Default,
+                SoundMark.Default,
+                SoundMark.Default,
+                SoundMark.Default
+            ),
+            likedSoundMarks = listOf(
+                SoundMark.Default,
+                SoundMark.Default,
+                SoundMark.Default,
+                SoundMark.Default
+            ),
         )
     }
 }
