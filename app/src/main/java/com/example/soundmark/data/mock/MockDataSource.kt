@@ -63,7 +63,13 @@ object MockDataSource {
             location = GeoLocation(37.5665, 126.9780, "엘리스랩 성수"),
             message = "여기서 이 노래 들으면 감성이 폭발합니다.. 꼭 들어보세요!" + id,
             imageUrls = listOf("https://picsum.photos/200/300"),
-            reactions = emptyList(),
+            reactions = listOf(
+                Reaction(ReactionType("fire", "🔥", "Fire"), 1234, true),
+                Reaction(ReactionType("sad", "😢", "Sad"), 56, false),
+                Reaction(ReactionType("love", "❤️", "Love"), 890, false),
+                Reaction(ReactionType("party", "🥳", "Party"), 12, false), // 새로 추가된 리액션!
+                Reaction(ReactionType("cool", "😎", "Cool"), 7, false)    // 코드 수정 없이 추가 가능
+            ),
             createdAt = System.currentTimeMillis(),
             isActive = true
         )
