@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +26,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.example.soundmark.data.model.GeoLocation
 import com.example.soundmark.data.model.Track
 
@@ -39,12 +41,10 @@ fun AddScreen(
     var showSongBottomSheet by remember { mutableStateOf(false) }
     
     val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { it != SheetValue.Hidden }
+        skipPartiallyExpanded = true
     )
     val songSheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { it != SheetValue.Hidden }
+        skipPartiallyExpanded = true
     )
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -236,7 +236,7 @@ fun AddScreen(
         ) {
             SongSelectionContent(
                 uiState = uiState,
-                onSearch = { viewModel.searchTracks(it) },
+                onSearch = { viewModel.onSearchQueryChanged(it) },
                 onTrackSelected = { track ->
                     viewModel.onTrackSelected(track)
                     showSongBottomSheet = false
@@ -282,12 +282,7 @@ fun SongSelectionContent(
     onSearch: (String) -> Unit,
     onTrackSelected: (Track) -> Unit
 ) {
-    var searchQuery by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
-
-    LaunchedEffect(searchQuery) {
-        onSearch(searchQuery)
-    }
 
     val nestedScrollConnection = remember(listState) {
         object : NestedScrollConnection {
@@ -314,8 +309,8 @@ fun SongSelectionContent(
         )
 
         OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
+            value = uiState.searchQuery,
+            onValueChange = { onSearch(it) },
             modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
             placeholder = { Text("곡 제목, 아티스트 검색") },
             leadingIcon = { 
@@ -326,8 +321,8 @@ fun SongSelectionContent(
                 }
             },
             trailingIcon = {
-                if (searchQuery.isNotEmpty()) {
-                    IconButton(onClick = { searchQuery = "" }) {
+                if (uiState.searchQuery.isNotEmpty()) {
+                    IconButton(onClick = { onSearch("") }) {
                         Icon(Icons.Default.Check, contentDescription = "Clear")
                     }
                 }
@@ -341,16 +336,27 @@ fun SongSelectionContent(
             modifier = Modifier.fillMaxWidth().weight(1f).nestedScroll(nestedScrollConnection),
             contentPadding = PaddingValues(vertical = 8.dp)
         ) {
+            if (uiState.searchedTracks.isEmpty() && !uiState.isSearching && uiState.searchQuery.isNotEmpty()) {
+                item {
+                    Text(
+                        text = "검색 결과가 없습니다.",
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
+            }
+
             items(uiState.searchedTracks) { track ->
                 ListItem(
                     headlineContent = { Text(track.title) },
                     supportingContent = { Text(track.artist) },
                     leadingContent = { 
-//                        AsyncImage(
-//                            model = track.albumCoverUrl,
-//                            contentDescription = null,
-//                            modifier = Modifier.size(40.dp)
-//                        )
+                        AsyncImage(
+                            model = track.albumCoverUrl,
+                            contentDescription = null,
+                            modifier = Modifier.size(40.dp)
+                        )
                     },
                     modifier = Modifier.fillMaxWidth().clickable { onTrackSelected(track) }.padding(vertical = 4.dp)
                 )

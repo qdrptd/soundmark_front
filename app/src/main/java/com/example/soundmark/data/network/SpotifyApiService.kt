@@ -28,4 +28,12 @@ interface SpotifyAuthApi {
         @Field("code_verifier") codeVerifier: String
     ): SpotifyTokenResponse
 
+    @FormUrlEncoded
+    @POST("https://accounts.spotify.com/api/token")
+    suspend fun refreshToken(
+        @Field("grant_type") grantType: String = "refresh_token",
+        @Field("refresh_token") refreshToken: String,
+        @Field("client_id") clientId: String
+    ): SpotifyTokenResponse
+
 }

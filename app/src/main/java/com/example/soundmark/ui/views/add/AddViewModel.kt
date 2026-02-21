@@ -7,9 +7,8 @@ import com.example.soundmark.data.model.Track
 import com.example.soundmark.data.repository.map.MapRepository
 import com.example.soundmark.util.LocationService
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,9 +23,11 @@ data class AddUiState(
     val selectedPlace: GeoLocation? = null,
     val selectedTrack: Track? = null,
     val error: String? = null,
-    val permissionDenied: Boolean = false
+    val permissionDenied: Boolean = false,
+    val searchQuery: String = ""
 )
 
+@OptIn(FlowPreview::class)
 @HiltViewModel
 class AddViewModel @Inject constructor(
     private val mapRepository: MapRepository,
@@ -37,6 +38,23 @@ class AddViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AddUiState())
     val uiState: StateFlow<AddUiState> = _uiState.asStateFlow()
 
+    private val _searchQuery = MutableStateFlow("")
+
+    init {
+        viewModelScope.launch {
+            _searchQuery
+                .debounce(500L)
+                .distinctUntilChanged()
+                .collectLatest { query ->
+                    if (query.isNotBlank()) {
+                        performSearch(query)
+                    } else {
+                        _uiState.update { it.copy(searchedTracks = emptyList(), isSearching = false) }
+                    }
+                }
+        }
+    }
+
     fun onPlaceSelected(place: GeoLocation) {
         _uiState.value = _uiState.value.copy(selectedPlace = place)
     }
@@ -45,20 +63,18 @@ class AddViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(selectedTrack = track)
     }
 
-    fun searchTracks(query: String) {
-        if (query.isBlank()) {
-            _uiState.value = _uiState.value.copy(searchedTracks = emptyList())
-            return
-        }
+    fun onSearchQueryChanged(query: String) {
+        _searchQuery.value = query
+        _uiState.update { it.copy(searchQuery = query) }
+    }
 
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isSearching = true)
-            val result = spotifyRepository.searchTracks(query)
-            result.onSuccess { tracks ->
-                _uiState.value = _uiState.value.copy(searchedTracks = tracks, isSearching = false)
-            }.onFailure { e ->
-                _uiState.value = _uiState.value.copy(isSearching = false, error = "곡 검색 실패: ${e.message}")
-            }
+    private suspend fun performSearch(query: String) {
+        _uiState.update { it.copy(isSearching = true) }
+        val result = spotifyRepository.searchTracks(query)
+        result.onSuccess { tracks ->
+            _uiState.update { it.copy(searchedTracks = tracks, isSearching = false) }
+        }.onFailure { e ->
+            _uiState.update { it.copy(isSearching = false, error = "곡 검색 실패: ${e.message}") }
         }
     }
 

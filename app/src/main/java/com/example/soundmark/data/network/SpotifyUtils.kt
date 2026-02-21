@@ -5,8 +5,8 @@ import android.net.Uri
 import android.util.Base64
 import androidx.browser.customtabs.CustomTabsIntent
 import com.example.soundmark.BuildConfig
-import jakarta.inject.Inject
-import jakarta.inject.Singleton
+import javax.inject.Inject
+import javax.inject.Singleton
 import java.security.MessageDigest
 import java.util.UUID
 
