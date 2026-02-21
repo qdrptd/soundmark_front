@@ -62,7 +62,7 @@ fun HomeScreen(
             FloatingActionButton(
                 onClick = onNavigateToAdd,
                 containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = ComposeColor.White,
+                contentColor = MaterialTheme.colorScheme.background,
                 shape = androidx.compose.foundation.shape.CircleShape
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add SoundMark")
