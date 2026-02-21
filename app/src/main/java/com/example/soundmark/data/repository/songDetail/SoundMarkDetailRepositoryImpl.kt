@@ -1,18 +1,38 @@
 package com.example.soundmark.data.repository.songDetail
 
+import com.example.soundmark.data.dto.ErrorResponseDto
+import com.example.soundmark.data.dto.toDomain
 import com.example.soundmark.data.mock.MockDataSource
 import com.example.soundmark.data.model.SoundMark
+import com.example.soundmark.data.network.ApiService
+import com.google.gson.Gson
 import javax.inject.Inject
 
-class SoundMarkDetailRepositoryImpl @Inject constructor(): SoundMarkDetailRepository {
-    override suspend fun getSoundMarkById(id: String): Result<SoundMark> {
-        // TODO: 실제 환경에선 API 통신을 하겠지만, 지금은 Default 값을 반환해
+class SoundMarkDetailRepositoryImpl @Inject constructor(
+    private val apiService: ApiService,
+    private val gson: Gson
+): SoundMarkDetailRepository {
+    override suspend fun getSoundMarkById(id: String, lat: Double, lng: Double): Result<SoundMark> {
         return try {
-            // MockDataSource에서 id를 기반으로 데이터를 가져옵니다.
-            val mockData = MockDataSource.getSoundMarkDetail(id)
-            Result.success(mockData)
+            val response = apiService.getRecommendationDetail(id, lat, lng)
+
+            if (response.isSuccessful) {
+                // 1. 성공 시 DTO를 도메인 모델로 변환 (날짜 파싱, 이모지 매핑 포함)
+                val body = response.body() ?: throw Exception("응답 데이터가 비어있습니다.")
+                Result.success(body.toDomain())
+            } else {
+                // 2. 에러 핸들링 (특히 403 거리 제한 처리)
+                if (response.code() == 403) {
+                    val errorJson = response.errorBody()?.string()
+                    val errorData = gson.fromJson(errorJson, ErrorResponseDto::class.java)
+                    // 서버 메시지: "추천곡 상세는 반경 200m 이내에서만 볼 수 있습니다."
+                    Result.failure(Exception(errorData.detail.message))
+                } else {
+                    Result.failure(Exception("데이터 조회 실패 (코드: ${response.code()})"))
+                }
+            }
         } catch (e: Exception) {
-            // 에러 발생 시 Result.failure로 감싸서 전달합니다.
+            // 네트워크 끊김, 타임아웃 등
             Result.failure(e)
         }
     }

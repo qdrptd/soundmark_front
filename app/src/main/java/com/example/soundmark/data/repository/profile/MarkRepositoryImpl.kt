@@ -14,12 +14,14 @@ import javax.inject.Singleton
 class MarkRepositoryImpl @Inject constructor(
     private val apiService: ApiService,
 ) : MarkRepository {
-    override suspend fun getNearbyMarks(geoLocation: GeoLocation): Result<List<MapPin>> {
+    override suspend fun getNearbyMarks(geoLocation: GeoLocation, userLocation: GeoLocation): Result<List<MapPin>> {
         return try{
 
             val response = apiService.getNearbyMusic(
                 lat = geoLocation.latitude,
-                lng = geoLocation.longitude
+                lng = geoLocation.longitude,
+                myLat = userLocation.latitude,
+                myLng = userLocation.longitude
             )
 
             if (response.isSuccessful) {

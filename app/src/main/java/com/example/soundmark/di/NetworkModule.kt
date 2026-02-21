@@ -5,6 +5,7 @@ import com.example.soundmark.data.network.AuthInterceptor
 import com.example.soundmark.data.network.SpotifyApi
 import com.example.soundmark.data.network.SpotifyAuthApi
 import com.example.soundmark.data.network.TokenAuthenticator
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -157,4 +158,8 @@ object NetworkModule {
         @Named("googleMaps") retrofit: Retrofit
     ): com.example.soundmark.data.network.MapApiService =
         retrofit.create(com.example.soundmark.data.network.MapApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideGson(): Gson = Gson()
 }

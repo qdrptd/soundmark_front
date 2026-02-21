@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.soundmark.data.model.ClusterMark
 import com.example.soundmark.R
+import com.example.soundmark.data.model.GeoLocation
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -61,6 +62,24 @@ fun HomeScreen(
     LaunchedEffect(cameraPositionState.isMoving) {
         if (!cameraPositionState.isMoving) {
             viewModel.onZoomChanged(cameraPositionState.position.zoom)
+        }
+    }
+
+    // 카메라 이동이 멈추는 시점을 감지
+    LaunchedEffect(cameraPositionState.isMoving) {
+        if (!cameraPositionState.isMoving) {
+            // 1. 줌 레벨 업데이트
+            viewModel.onZoomChanged(cameraPositionState.position.zoom)
+
+            // 2. 현재 지도 중심 좌표를 GeoLocation으로 변환하여 전달
+            val center = cameraPositionState.position.target
+            viewModel.onCameraMoved(
+                GeoLocation(
+                    latitude = center.latitude,
+                    longitude = center.longitude,
+                    placeName = null // 중심점 이름은 알 수 없으므로 null
+                )
+            )
         }
     }
 
