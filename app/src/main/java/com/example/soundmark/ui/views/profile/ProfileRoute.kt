@@ -34,9 +34,14 @@ fun ProfileRoute(userId: String) {
     var isExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("프로필") }
+                title = { Text("프로필", style = MaterialTheme.typography.titleLarge.bold()) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground
+                )
             )
         }
     ) { padding ->

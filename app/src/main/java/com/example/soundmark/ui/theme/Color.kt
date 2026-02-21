@@ -2,10 +2,19 @@ package com.example.soundmark.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Main Theme Colors
+val BackgroundDark = Color(0xFF121212)
+val PointGreen = Color(0xFF00FF9C)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Surface & Variations
+val SurfaceDark = Color(0xFF1E1E1E)
+val SurfaceVariantDark = Color(0xFF2C2C2C)
+
+// Secondary & Tertiary
+val SecondaryDark = Color(0xFFB0B0B0)
+val TertiaryDark = Color(0xFF424242)
+
+// Text Colors
+val OnBackgroundDark = Color(0xFFFFFFFF)
+val OnSurfaceDark = Color(0xFFE0E0E0)
+val OnPrimaryDark = Color(0xFF000000)
