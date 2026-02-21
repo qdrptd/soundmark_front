@@ -33,11 +33,6 @@ class HomeViewModel @Inject constructor(
         MarkerClusteringUtil.clusterPins(pins, zoom)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // 줌 레벨 업데이트 함수
-    fun onZoomChanged(newZoom: Float) {
-        _currentZoom.value = newZoom
-    }
-
     // 지도에 표시할 마크 리스트 상태
     private val _selectedCluster = MutableStateFlow<ClusterMark?>(null)
     val selectedCluster = _selectedCluster.asStateFlow()
@@ -48,12 +43,8 @@ class HomeViewModel @Inject constructor(
 
     fun loadNearbyPins(location: GeoLocation) {
         viewModelScope.launch {
-            // ✅ suspend 함수 호출 및 Result 처리
-            val result = markRepository.getNearbyMarks(location)
-            result.onSuccess { pins ->
-                _rawPins.value = pins
-            }.onFailure {
-                // TODO: 에러 처리 로직 (Toast 등)
+            markRepository.getNearbyMarks(location).onSuccess {
+                _rawPins.value = it
             }
         }
     }
@@ -65,4 +56,9 @@ class HomeViewModel @Inject constructor(
     fun dismissBottomSheet() {
         _selectedCluster.value = null
     }
+
+    fun onZoomChanged(newZoom: Float) {
+        _currentZoom.value = newZoom
+    }
+
 }
