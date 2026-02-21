@@ -11,14 +11,10 @@ interface AuthRepository {
     fun clearSession()
 
 
-    suspend fun handleSpotifyLogin(
+    suspend fun handleSpotifyPKCE(
         code: String,
         clientId: String,
         redirectUri: String,
-    ): Result<String>
-
-    suspend fun handleSpotifyCallback(
-        code: String
     ): Result<String>
 
     suspend fun refreshAccessToken(

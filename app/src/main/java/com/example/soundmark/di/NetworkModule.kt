@@ -23,7 +23,7 @@ object NetworkModule {
 
     private const val SPOTIFY_ACCOUNTS_BASE_URL = "https://accounts.spotify.com/"
     private const val SPOTIFY_API_BASE_URL = "https://api.spotify.com/"
-    private const val BACKEND_BASE_URL = "http://ec2-3-27-56-69.ap-southeast-2.compute.amazonaws.com/v1/api/"
+    private const val BACKEND_BASE_URL = "http://3.27.56.69/"
     private const val GOOGLE_MAPS_BASE_URL = "https://maps.googleapis.com/"
 
     // =========================

@@ -85,7 +85,7 @@ class OnboardViewModel @Inject constructor(
     private fun loginWithSpotify(code: String) {
         viewModelScope.launch {
             _loginState.value = LoginState.Loading
-            authRepository.handleSpotifyCallback(code)
+            authRepository.handleSpotifyPKCE(code, clientId, redirectUri)
                 .onSuccess { token ->
                     _loginState.value = LoginState.Success(token)
                 }

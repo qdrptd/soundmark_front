@@ -1,6 +1,7 @@
 package com.example.soundmark.data.network
 
 import com.example.soundmark.data.dto.JwtResponse
+import com.example.soundmark.data.dto.SpotifyVerifyRequest
 import com.example.soundmark.data.dto.UserResponse
 import com.example.soundmark.data.model.Profile
 import com.example.soundmark.data.model.User
@@ -18,14 +19,8 @@ interface ApiService {
         @Path("userId") userId: String
     ): Profile
 
-    @POST("auth/spotify")
-    suspend fun loginWithSpotify(
-        @Header("Authorization") authorization: String
-    ): JwtResponse
-
-    @POST("spotify/callback")
-    @FormUrlEncoded
-    suspend fun spotifyCallback(
-        @Field("code") code: String
+    @POST("api/v1/auth/spotify/verify")
+    suspend fun spotifyVerify(
+        @Body request: SpotifyVerifyRequest
     ): JwtResponse
 }
