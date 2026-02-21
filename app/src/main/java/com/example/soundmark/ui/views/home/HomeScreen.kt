@@ -9,6 +9,7 @@ import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
 import android.graphics.Rect
+import android.graphics.RectF
 import android.graphics.Typeface
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -173,33 +174,57 @@ fun createClusterIcon(
     count: Int,
     isActive: Boolean
 ): BitmapDescriptor {
-    // 1. 기본 아이콘 이미지 로드 (icon1)
-    val baseBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.icon1)
 
-    // 원본 이미지 크기 조절 (필요시)
-    val iconSize = 120
+    // 1. count 수에 따라 사용할 이미지 리소스 결정
+    val iconRes = when {
+        count >= 50 -> R.drawable.icon_map50up
+        count >= 10 -> R.drawable.icon_map10up
+        count > 1    -> R.drawable.icon_map2up
+        else         -> R.drawable.icon1       // FIXME
+    }
+
+    // 2. 결정된 리소스로 비트맵 로드
+    val baseBitmap = BitmapFactory.decodeResource(context.resources, iconRes)
+    val iconSize = 100
     val scaledIcon = Bitmap.createScaledBitmap(baseBitmap, iconSize, iconSize, false)
 
-    // 최종 비트맵 크기 결정 (뱃지가 아래에 추가될 공간 확보)
-    val width = iconSize
-    val height = if (count > 1) iconSize + 60 else iconSize
+    // 여백 및 최종 비트맵 크기 계산
+    val shadowRadius = 15f  // 그림자 번짐 정도
+    val margin = 30f        // 그림자가 잘리지 않도록 여백 확보
+    val badgeHeight = if (count > 1) 50f else 0f
+
+    val width = (iconSize + margin * 2).toInt()
+    val height = (iconSize + margin * 2 + badgeHeight).toInt()
+
     val finalBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(finalBitmap)
 
-    // 2. 이미지 Paint 설정 (비활성 상태일 때 투명도나 회색 필터 적용)
-    val iconPaint = Paint().apply {
-        if (!isActive) {
-            val colorMatrix = ColorMatrix().apply { setSaturation(0f) } // 흑백 처리
-            colorFilter = ColorMatrixColorFilter(colorMatrix)
-            alpha = 150 // 반투명
+    val centerX = width / 2f
+    val centerY = iconSize / 2f + margin
+
+// 4. 그림자 레이어 그리기 (아이콘 아래에 입체감 부여)
+    val shadowPaint = Paint().apply {
+        isAntiAlias = true
+        color = Color.WHITE // 그림자의 토대가 되는 배경색
+        // setShadowLayer(반지름, x오프셋, y오프셋, 색상)
+        if (isActive) {
+            setShadowLayer(shadowRadius, 0f, 6f, Color.parseColor("#60000000"))
         }
     }
+    canvas.drawCircle(centerX, centerY, iconSize / 2f, shadowPaint)
 
-    // 중심 정렬을 위해 x좌표 계산
-    val centerX = width / 2f
-    canvas.drawBitmap(scaledIcon, centerX - (iconSize / 2f), 0f, iconPaint)
+    // 5. 아이콘 그리기 (Active 상태에 따른 처리)
+    val iconPaint = Paint().apply {
+        isAntiAlias = true
+        if (!isActive) {
+            val cm = ColorMatrix().apply { setSaturation(0f) } // 흑백 처리
+            colorFilter = ColorMatrixColorFilter(cm)
+            alpha = 150 // 불투명도 조절 (0~255 범위 내)
+        }
+    }
+    canvas.drawBitmap(scaledIcon, centerX - (iconSize / 2f), centerY - (iconSize / 2f), iconPaint)
 
-    // 3. Count 조건에 따른 Rect 및 텍스트 그리기
+    // 5. 하단 숫자 뱃지 (기존 조건 유지: 1개면 안 그림)
     if (count > 1) {
         val displayText = when {
             count >= 50 -> "50+"
@@ -208,37 +233,28 @@ fun createClusterIcon(
         }
 
         val rectPaint = Paint().apply {
-            color = if (isActive) Color.parseColor("#6200EE") else Color.LTGRAY
-            style = Paint.Style.FILL
+            color = if (isActive) Color.parseColor("#6200EE") else Color.DKGRAY
             isAntiAlias = true
         }
 
         val textPaint = Paint().apply {
             color = Color.WHITE
+            textSize = 32f
             textAlign = Paint.Align.CENTER
             typeface = Typeface.DEFAULT_BOLD
             isAntiAlias = true
         }
 
-        // 텍스트 크기 측정 및 Rect 영역 계산
-        val textBounds = Rect()
-        textPaint.getTextBounds(displayText, 0, displayText.length, textBounds)
-        val rectWidth = textBounds.width() + 30f
-        val rectHeight = textBounds.height() + 20f
+        // 뱃지 둥근 사각형 그리기
+        val rectWidth = 70f
+        val rectHeight = 45f
+        val rectTop = centerY + (iconSize / 2f) - 15f
+        val rectRect = RectF(centerX - rectWidth/2, rectTop, centerX + rectWidth/2, rectTop + rectHeight)
 
-        val rectLeft = centerX - (rectWidth / 2f)
-        val rectTop = iconSize.toFloat() - 10f // 아이콘과 살짝 겹치게 배치
-        val rectRight = rectLeft + rectWidth
-        val rectBottom = rectTop + rectHeight
+        canvas.drawRoundRect(rectRect, 20f, 20f, rectPaint)
 
-        // 둥근 사각형 뱃지 그리기
-        canvas.drawRoundRect(
-            rectLeft, rectTop, rectRight, rectBottom,
-            15f, 15f, rectPaint
-        )
-
-        // 텍스트 그리기
-        val textY = rectTop + (rectHeight / 2f) - ((textPaint.descent() + textPaint.ascent()) / 2f)
+        // 텍스트 중앙 배치
+        val textY = rectRect.centerY() - ((textPaint.descent() + textPaint.ascent()) / 2f)
         canvas.drawText(displayText, centerX, textY, textPaint)
     }
 
