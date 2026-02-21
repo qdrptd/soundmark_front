@@ -11,21 +11,24 @@ object MockDataSource {
             artist = "NewJeans",
             albumCoverUrl = "https://picsum.photos/200/300",
             spotifyUrl = "spotify:track:1",
-            previewUrl = null
+            previewUrl = null,
+            id = "1234",
         ),
         Track(
             title = "Ditto",
             artist = "NewJeans",
             albumCoverUrl = "https://picsum.photos/200/300",
             spotifyUrl = "spotify:track:2",
-            previewUrl = null
+            previewUrl = null,
+            id = "1234",
         ),
         Track(
             title = "Seven",
             artist = "Jungkook",
             albumCoverUrl = "https://picsum.photos/200/300",
             spotifyUrl = "spotify:track:3",
-            previewUrl = null
+            previewUrl = null,
+            id = "1234",
         )
     )
 

@@ -1,5 +1,6 @@
 package com.example.soundmark.data.network
 
+import com.example.soundmark.data.dto.CreateRecommendationRequestDto
 import com.example.soundmark.data.dto.JwtResponse
 import com.example.soundmark.data.dto.MapResponseDto
 import com.example.soundmark.data.dto.RecommendationDetailDto
@@ -55,5 +56,11 @@ interface ApiService {
     suspend fun postReaction(
         @Path("recommendation_id") id: String,
         @Body body: Map<String, String> // { "reaction_type": "🔥" }
+    ): Response<Unit>
+
+
+    @POST("api/v1/recommendations")
+    suspend fun postRecommendation(
+        @Body body: CreateRecommendationRequestDto
     ): Response<Unit>
 }

@@ -46,6 +46,7 @@ fun AddScreen(
     val uiState by viewModel.uiState.collectAsState()
     var showBottomSheet by remember { mutableStateOf(false) }
     var showSongBottomSheet by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
     
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
@@ -74,7 +75,20 @@ fun AddScreen(
         )
     }
 
+    LaunchedEffect(uiState.isPostSuccess) {
+        if (uiState.isPostSuccess) {
+            onBack()
+        }
+    }
+
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            snackbarHostState.showSnackbar(it)
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("사운드 마크 추가") },
@@ -84,6 +98,27 @@ fun AddScreen(
                     }
                 }
             )
+        },
+        bottomBar = {
+            Button(
+                onClick = { viewModel.postSoundMark() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .height(56.dp),
+                enabled = uiState.selectedTrack != null && uiState.selectedPlace != null && !uiState.isPosting,
+                shape = MaterialTheme.shapes.medium
+            ) {
+                if (uiState.isPosting) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text("사운드 마크 심기")
+                }
+            }
         }
     ) { padding ->
         Column(
@@ -185,6 +220,19 @@ fun AddScreen(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = uiState.message,
+                onValueChange = { viewModel.onMessageChanged(it) },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("메시지 (선택 사항)") },
+                placeholder = { Text("이 노래에 대한 추억을 적어주세요.") },
+                minLines = 3,
+                maxLines = 5,
+                shape = MaterialTheme.shapes.medium
+            )
             
             Spacer(modifier = Modifier.height(8.dp))
 

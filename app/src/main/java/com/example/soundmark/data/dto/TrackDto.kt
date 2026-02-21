@@ -15,6 +15,7 @@ data class TrackDto(
 
 fun TrackDto.toDomain(): Track {
     return Track(
+        id = this.id.toString(),
         title = this.title,
         artist = this.artist,
         albumCoverUrl = this.album_cover_url,
