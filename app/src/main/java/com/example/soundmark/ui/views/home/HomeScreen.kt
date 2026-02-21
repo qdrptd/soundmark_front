@@ -77,7 +77,7 @@ fun HomeScreen(
         }
     ) { padding ->
         GoogleMap(
-            modifier = Modifier.padding(padding).fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
             properties = properties,
             uiSettings = uiSettings
