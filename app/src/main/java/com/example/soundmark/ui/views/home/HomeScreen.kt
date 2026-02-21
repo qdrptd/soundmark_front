@@ -39,8 +39,11 @@ fun HomeScreen(
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(LatLng(37.5665, 126.9780), 15f)
     }
-    val uiSettings = MapUiSettings(zoomControlsEnabled = false)
-    val properties = MapProperties(isMyLocationEnabled = false)
+    val uiSettings = MapUiSettings(
+        zoomControlsEnabled = false,
+        myLocationButtonEnabled = true
+    )
+    val properties = MapProperties(isMyLocationEnabled = true)
 
     // 카메라의 줌 레벨이 변하는 것을 관찰하여 ViewModel에 전달
     LaunchedEffect(cameraPositionState.isMoving) {

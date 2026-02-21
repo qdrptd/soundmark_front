@@ -28,6 +28,8 @@ class MapRepositoryImpl @Inject constructor(
                     )
                 }
                 Result.success(locations)
+            } else if (response.status == "ZERO_RESULTS") {
+                Result.success(emptyList())
             } else {
                 Result.failure(Exception("Google Places API Error: ${response.status}"))
             }
