@@ -141,7 +141,7 @@ fun ClusterDetailContent(
             // 비활성화 상태: 접근 제한 안내 문구 표시
             Spacer(modifier = Modifier.height(32.dp))
             Icon(
-                imageVector = androidx.compose.material.icons.Icons.Default.Lock,
+                imageVector = Icons.Default.Lock,
                 contentDescription = "Locked",
                 modifier = Modifier.size(48.dp),
                 tint = ComposeColor.Gray
