@@ -3,12 +3,15 @@ package com.example.soundmark.data.repository.soundmark
 import com.example.soundmark.data.dto.CreateRecommendationRequestDto
 import com.example.soundmark.data.network.ApiService
 import javax.inject.Inject
+import javax.inject.Provider
 import javax.inject.Singleton
 
 @Singleton
 class SoundMarkRepositoryImpl @Inject constructor(
-    private val apiService: ApiService
+    private val apiServiceProvider: Provider<ApiService> // Provider로 변경
 ) : SoundMarkRepository {
+
+    private val apiService get() = apiServiceProvider.get()
 
     override suspend fun postRecommendation(request: CreateRecommendationRequestDto): Result<Unit> {
         return try {

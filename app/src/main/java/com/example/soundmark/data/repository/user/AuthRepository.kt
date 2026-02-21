@@ -30,6 +30,8 @@ interface AuthRepository {
         clientId: String
     ): Result<String>
 
+    suspend fun refreshBackendToken(): Result<String>
+
     fun saveCodeVerifier(verifier: String)
     fun getCodeVerifier(): String?
 }

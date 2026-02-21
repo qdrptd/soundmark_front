@@ -35,6 +35,11 @@ interface ApiService {
         @Body request: SpotifyVerifyRequest
     ): JwtResponse
 
+    @POST("api/v1/auth/refresh")
+    suspend fun refreshBackendToken(
+        @Body body: Map<String, String> // { "refresh_token": "..." }
+    ): JwtResponse
+
     @GET("api/v1/map/nearby")
     suspend fun getNearbyMusic(
         @Query("lat") lat: Double,

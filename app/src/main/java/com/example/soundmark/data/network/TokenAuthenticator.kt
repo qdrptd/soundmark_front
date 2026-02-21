@@ -65,9 +65,36 @@ class TokenAuthenticator @Inject constructor(
                 }
             }
             
-            // 우리 백엔드 서버 API 호출 중 발생한 401인 경우 (현재 갱신 로직 미구현)
-            Log.e("TokenAuthenticator", "Backend API 401. No refresh logic implemented.")
-            return null
+            // 우리 백엔드 서버 API 호출 중 발생한 401인 경우
+            val currentBackendToken = authRepository.getAccessToken()
+            val requestToken = response.request.header("Authorization")?.removePrefix("Bearer ")
+
+            Log.d("TokenAuthenticator", "Attempting Backend token refresh. currentToken=${currentBackendToken?.take(5)}, requestToken=${requestToken?.take(5)}")
+
+            // If the token was already refreshed by another thread, use the new one
+            if (currentBackendToken != null && currentBackendToken != requestToken) {
+                Log.d("TokenAuthenticator", "Backend Token already refreshed by another thread")
+                return response.request.newBuilder()
+                    .header("Authorization", "Bearer $currentBackendToken")
+                    .build()
+            }
+
+            Log.d("TokenAuthenticator", "Refreshing Backend token...")
+            val result = runBlocking {
+                authRepository.refreshBackendToken()
+            }
+
+            return if (result.isSuccess) {
+                val newToken = result.getOrThrow()
+                Log.d("TokenAuthenticator", "Backend Refresh successful! Retrying request with new token.")
+                response.request.newBuilder()
+                    .header("Authorization", "Bearer $newToken")
+                    .build()
+            } else {
+                Log.e("TokenAuthenticator", "Backend Refresh failed: ${result.exceptionOrNull()?.message}. Clearing session.")
+                authRepository.clearSession()
+                null
+            }
         }
     }
 
