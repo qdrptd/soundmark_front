@@ -24,7 +24,9 @@ class MapRepositoryImpl @Inject constructor(
                     GeoLocation(
                         latitude = it.geometry.location.lat,
                         longitude = it.geometry.location.lng,
-                        placeName = it.name
+                        placeName = it.name,
+                        address = it.vicinity,
+                        placeId = it.placeId
                     )
                 }
                 Result.success(locations)

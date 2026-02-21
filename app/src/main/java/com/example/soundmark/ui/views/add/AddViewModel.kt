@@ -107,9 +107,9 @@ class AddViewModel @Inject constructor(
                 lng = place.longitude,
                 place = PlaceDto(
                     source = "google",
-                    googlePlaceId = "TEMP_ID", // TODO: 실제 ID가 있다면 연동
+                    googlePlaceId = place.placeId ?: "",
                     placeName = place.placeName ?: "Unknown Place",
-                    address = "Unknown Address"
+                    address = place.address ?: "Unknown Address"
                 ),
                 spotifyTrackId = track.id,
                 message = currentState.message

@@ -501,7 +501,7 @@ fun PlaceSelectionContent(
                 items(uiState.nearbyPlaces) { place ->
                     ListItem(
                         headlineContent = { Text(place.placeName ?: "Unknown") },
-                        supportingContent = { Text("${place.latitude}, ${place.longitude}") },
+                        supportingContent = { Text(place.address ?: "${place.latitude}, ${place.longitude}") },
                         leadingContent = { Icon(Icons.Default.LocationOn, contentDescription = null) },
                         modifier = Modifier.fillMaxWidth().clickable { onPlaceSelected(place) }.padding(vertical = 4.dp)
                     )
