@@ -36,21 +36,24 @@ object MockDataSource {
             track = mockTracks[0],
             latitude = 37.5665,
             longitude = 126.9780,
-            isActive = true
+            isActive = true,
+            count = 2341
         ),
         MapPin(
             soundmarkId = "pin_2",
             track = mockTracks[1],
             latitude = 37.5675,
             longitude = 126.9800,
-            isActive = true
+            isActive = true,
+            count = 2341
         ),
         MapPin(
             soundmarkId = "pin_3",
             track = mockTracks[2],
             latitude = 37.5650,
             longitude = 126.9750,
-            isActive = false // 멀리 있는 경우 가정
+            isActive = false, // 멀리 있는 경우 가정,
+            count = 2341
         )
     )
 

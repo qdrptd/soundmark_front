@@ -1,4 +1,5 @@
 package com.example.soundmark.data.dto
 
-class MapResponse {
-}
+data class MapResponseDto(
+    val recommendations: List<RecommendationDto>
+)

@@ -189,8 +189,8 @@ fun createClusterIcon(
     val scaledIcon = Bitmap.createScaledBitmap(baseBitmap, iconSize, iconSize, false)
 
     // 여백 및 최종 비트맵 크기 계산
-    val shadowRadius = 15f  // 그림자 번짐 정도
-    val margin = 30f        // 그림자가 잘리지 않도록 여백 확보
+    val shadowRadius = 16f  // 그림자 번짐 정도
+    val margin = 32f        // 그림자가 잘리지 않도록 여백 확보
     val badgeHeight = if (count > 1) 50f else 0f
 
     val width = (iconSize + margin * 2).toInt()
@@ -206,10 +206,7 @@ fun createClusterIcon(
     val shadowPaint = Paint().apply {
         isAntiAlias = true
         color = Color.WHITE // 그림자의 토대가 되는 배경색
-        // setShadowLayer(반지름, x오프셋, y오프셋, 색상)
-        if (isActive) {
-            setShadowLayer(shadowRadius, 0f, 6f, Color.parseColor("#60000000"))
-        }
+        setShadowLayer(shadowRadius, 0f, 6f, Color.parseColor("#70000000"))
     }
     canvas.drawCircle(centerX, centerY, iconSize / 2f, shadowPaint)
 

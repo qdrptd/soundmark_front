@@ -8,6 +8,4 @@ import com.example.soundmark.data.model.SoundMark
 interface MarkRepository {
     suspend fun getNearbyMarks(geoLocation: GeoLocation): Result<List<MapPin>>
 
-    suspend fun getSoundMarkById(markId: String): Result<SoundMark>
-
 }
