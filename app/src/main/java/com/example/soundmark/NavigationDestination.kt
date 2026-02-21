@@ -19,8 +19,8 @@ enum class NavigationDestination(
     SONG_DETAIL("Song Detail", null, null, false, "SONG_DETAIL/{soundMarkId}"),
     SONG_ADD("Song Add"),
     PROFILE("마이페이지", iconResId = R.drawable.ic_person, showInBottomBar = true, definedRoute = "PROFILE/{userId}"),
-    ONBOARD("Onboard");
-
+    ONBOARD("Onboard"),
+    PROFILE_EDIT("프로필 편집", null, null, false, "profile_edit?name={name}&message={message}&imageId={imageId}");
     val route: String
         get() = definedRoute ?: this.name
 }
