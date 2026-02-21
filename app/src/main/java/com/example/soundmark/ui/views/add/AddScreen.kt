@@ -141,7 +141,7 @@ fun AddScreen(
                             strokeWidth = 2.dp
                         )
                     } else {
-                        Text("사운드 마크 심기", style = MaterialTheme.typography.titleMedium.bold())
+                        Text("그루 심기", style = MaterialTheme.typography.titleMedium.bold())
                     }
                 }
             }
