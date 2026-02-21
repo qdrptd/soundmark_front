@@ -1,6 +1,7 @@
 package com.example.soundmark.data.model
 
 data class Track(
+    val id: String,
     val title: String,
     val artist: String,
     val albumCoverUrl: String,
@@ -9,6 +10,7 @@ data class Track(
 ) {
     companion object {
         val Default = Track(
+            id = "123",
             title = "Track title",
             artist = "Artist name",
             albumCoverUrl = "https://example.com/album.jpg",

@@ -15,32 +15,53 @@ class AuthInterceptor @Inject constructor(
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
         val url = originalRequest.url.toString()
-        val authRepository = authRepositoryProvider.get()
+        
+        Log.d("AuthInterceptor", "Intercepting request to: $url")
+
+        val authRepository = try {
+            authRepositoryProvider.get()
+        } catch (e: Exception) {
+            Log.e("AuthInterceptor", "Failed to get AuthRepository: ${e.message}")
+            return chain.proceed(originalRequest)
+        }
 
         // URL에 따라 적절한 토큰 선택
         val token = when {
+            // 1. 스포티파이 API 호출 시
             url.contains("api.spotify.com") -> {
-                Log.d("AuthInterceptor", "Target: Spotify API. Fetching Spotify Access Token.")
-                authRepository.getSpotifyAccessToken()
+                val t = authRepository.getSpotifyAccessToken()
+                Log.d("AuthInterceptor", "Spotify API call. Token present: ${t != null}")
+                t
             }
+            // 2. 스포티파이 인증/토큰 갱신 호출 시 (헤더 불필요)
             url.contains("accounts.spotify.com") -> {
-                Log.d("AuthInterceptor", "Target: Spotify Accounts. No Auth Header needed.")
+                Log.d("AuthInterceptor", "Spotify Accounts call. Skipping header.")
                 null
             }
+            // 3. 우리 백엔드 토큰 갱신 호출 시 (헤더 불필요)
+            url.contains("api/v1/auth/refresh") -> {
+                Log.d("AuthInterceptor", "Backend Token Refresh call. Skipping header.")
+                null
+            }
+            // 4. 기타 우리 백엔드 API 호출 시
             else -> {
-                Log.d("AuthInterceptor", "Target: Backend API. Fetching Backend Access Token.")
-                authRepository.getAccessToken()
+                val t = authRepository.getAccessToken()
+                Log.d("AuthInterceptor", "Backend API call. Token present: ${t != null}")
+                t
             }
         }
 
         val requestBuilder = originalRequest.newBuilder()
         if (token != null) {
-            Log.d("AuthInterceptor", "Attaching token to request: ${originalRequest.url}")
             requestBuilder.header("Authorization", "Bearer $token")
-        } else {
-            Log.w("AuthInterceptor", "No token attached for request: ${originalRequest.url}")
         }
 
-        return chain.proceed(requestBuilder.build())
+        return try {
+            Log.d("AuthInterceptor", "Proceeding with request to: $url")
+            chain.proceed(requestBuilder.build())
+        } catch (e: Exception) {
+            Log.e("AuthInterceptor", "Chain proceed failed: ${e.message}")
+            throw e
+        }
     }
 }

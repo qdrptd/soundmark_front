@@ -16,6 +16,7 @@ class SpotifyRepositoryImpl @Inject constructor(
             val response = spotifyApi.searchTracks(query)
             val tracks = response.tracks.items.map { dto ->
                 Track(
+                    id = dto.id,
                     title = dto.name,
                     artist = dto.artists.firstOrNull()?.name ?: "Unknown",
                     albumCoverUrl = dto.album.images.firstOrNull()?.url ?: "",
