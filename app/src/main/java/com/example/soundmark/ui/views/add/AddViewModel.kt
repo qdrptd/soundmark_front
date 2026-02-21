@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.soundmark.data.dto.CreateRecommendationRequestDto
 import com.example.soundmark.data.dto.PlaceDto
 import com.example.soundmark.data.model.GeoLocation
+import com.example.soundmark.data.model.SimpleTrack
 import com.example.soundmark.data.model.Track
 import com.example.soundmark.data.repository.map.MapRepository
 import com.example.soundmark.data.repository.soundmark.SoundMarkRepository
@@ -25,6 +26,7 @@ data class AddUiState(
     val currentLocation: GeoLocation? = null,
     val nearbyPlaces: List<GeoLocation> = emptyList(),
     val searchedTracks: List<Track> = emptyList(),
+    val popularTracks: List<SimpleTrack> = emptyList(), // SimpleTrack으로 변경
     val selectedPlace: GeoLocation? = null,
     val selectedTrack: Track? = null,
     val error: String? = null,
@@ -48,6 +50,7 @@ class AddViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
 
     init {
+        fetchPopularTracks()
         viewModelScope.launch {
             _searchQuery
                 .debounce(500L)
@@ -56,8 +59,18 @@ class AddViewModel @Inject constructor(
                     if (query.isNotBlank()) {
                         performSearch(query)
                     } else {
+                        // 검색어 비었을 때 인기 곡 보여주는 기능 삭제
                         _uiState.update { it.copy(searchedTracks = emptyList(), isSearching = false) }
                     }
+                }
+        }
+    }
+
+    private fun fetchPopularTracks() {
+        viewModelScope.launch {
+            spotifyRepository.getPopularTracks()
+                .onSuccess { tracks ->
+                    _uiState.update { it.copy(popularTracks = tracks) }
                 }
         }
     }
@@ -67,6 +80,19 @@ class AddViewModel @Inject constructor(
     }
 
     fun onTrackSelected(track: Track) {
+        _uiState.value = _uiState.value.copy(selectedTrack = track)
+    }
+
+    // SimpleTrack을 선택했을 때의 처리
+    fun onSimpleTrackSelected(simpleTrack: SimpleTrack) {
+        val track = Track(
+            id = simpleTrack.id,
+            title = simpleTrack.title,
+            artist = simpleTrack.artist,
+            albumCoverUrl = "", // SimpleTrack에는 정보가 없으므로 빈값 처리
+            spotifyUrl = "",
+            previewUrl = null
+        )
         _uiState.value = _uiState.value.copy(selectedTrack = track)
     }
 
@@ -131,12 +157,12 @@ class AddViewModel @Inject constructor(
             
             val location = locationService.getCurrentLocation()
             if (location != null) {
-                val result = mapRepository.searchNearbyPlaces(location.latitude, location.longitude)
+                val result = mapRepository.searchNearbyPlaces(location.latitude, location.longitude, radius = 200)
                 result.onSuccess { places ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         nearbyPlaces = places,
-                        currentLocation = places.firstOrNull() ?: location
+                        currentLocation = location
                     )
                 }.onFailure { exception ->
                     _uiState.value = _uiState.value.copy(

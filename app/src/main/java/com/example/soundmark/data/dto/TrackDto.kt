@@ -15,11 +15,11 @@ data class TrackDto(
 
 fun TrackDto.toDomain(): Track {
     return Track(
-        id = this.id.toString(),
+        id = this.spotify_track_id, // backend numeric id 대신 spotify_track_id 사용
         title = this.title,
         artist = this.artist,
         albumCoverUrl = this.album_cover_url,
-        spotifyUrl = this.track_url, // JSON의 track_url을 spotifyUrl로 매핑
+        spotifyUrl = this.track_url,
         previewUrl = this.preview_url
     )
 }
