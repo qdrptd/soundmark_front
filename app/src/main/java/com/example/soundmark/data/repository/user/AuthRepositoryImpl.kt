@@ -54,15 +54,9 @@ class AuthRepositoryImpl @Inject constructor(
         Log.d("accessToken", tokenResponse.accessToken)
 
         val spotifyAccessToken = tokenResponse.accessToken
+        saveAccessToken(spotifyAccessToken)
 
-//        // 2️⃣ 우리 서버 로그인 (신원 검증)
-//        val jwt = api.loginWithSpotify("Bearer $spotifyAccessToken")
-//
-//        // 3️⃣ JWT 저장
-//        saveAccessToken(jwt.accessToken)
-//
-//        jwt.accessToken
-        return Result.success("accessToken")
+        return Result.success(spotifyAccessToken)
     }
 
     override fun saveCodeVerifier(verifier: String){
