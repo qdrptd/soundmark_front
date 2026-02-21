@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,7 +62,7 @@ fun HomeScreen(
             FloatingActionButton(
                 onClick = onNavigateToAdd,
                 containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = ComposeColor.White,
+                contentColor = MaterialTheme.colorScheme.background,
                 shape = androidx.compose.foundation.shape.CircleShape
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add SoundMark")
@@ -110,23 +111,53 @@ fun ClusterDetailContent(
     cluster: ClusterMark,
     onItemClick: (String) -> Unit
 ) {
-    Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
-        Text("이 구역의 사운드 마크 (${cluster.count}개)", style = MaterialTheme.typography.headlineSmall)
-        Spacer(modifier = Modifier.height(16.dp))
-        cluster.pins.forEach { pin ->
-            ListItem(
-                modifier = Modifier.clickable { onItemClick(pin.soundmarkId) },
-                headlineContent = { Text(pin.track.title) },
-                supportingContent = { Text(pin.track.artist) },
-                leadingContent = {
-                    // Coil을 사용한 앨범 커버 이미지 표시
-                    AsyncImage(
-                        model = pin.track.albumCoverUrl,
-                        contentDescription = "Album Cover",
-                        modifier = Modifier.size(48.dp)
-                    )
-                }
+    Column(modifier = Modifier.padding(16.dp).fillMaxWidth(),
+        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+    ) {
+        if (cluster.isActive) {
+            // 활성화 상태: 노래 목록 표시
+            Text(
+                text = "이 구역의 사운드 마크 (${cluster.count}개)",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.align(androidx.compose.ui.Alignment.Start)
             )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            cluster.pins.forEach { pin ->
+                ListItem(
+                    modifier = Modifier.clickable { onItemClick(pin.soundmarkId) },
+                    headlineContent = { Text(pin.track.title) },
+                    supportingContent = { Text(pin.track.artist, color = MaterialTheme.colorScheme.outline) },
+                    leadingContent = {
+                        AsyncImage(
+                            model = pin.track.albumCoverUrl,
+                            contentDescription = "Album Cover",
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+                )
+            }
+        } else {
+            // 비활성화 상태: 접근 제한 안내 문구 표시
+            Spacer(modifier = Modifier.height(32.dp))
+            Icon(
+                imageVector = androidx.compose.material.icons.Icons.Default.Lock,
+                contentDescription = "Locked",
+                modifier = Modifier.size(48.dp),
+                tint = ComposeColor.Gray
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "조금 더 가까이 다가가 보세요!",
+                style = MaterialTheme.typography.bodyLarge,
+                color = ComposeColor.Gray
+            )
+            Text(
+                text = "반경 내에 들어와야 노래 정보를 확인할 수 있습니다.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = ComposeColor.Gray
+            )
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
