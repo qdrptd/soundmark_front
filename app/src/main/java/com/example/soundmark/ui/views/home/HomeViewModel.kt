@@ -55,13 +55,26 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onCameraMoved(newLocation: GeoLocation) {
-        // 너무 미세한 움직임에는 호출하지 않도록 거리를 계산하는 로직을 넣을 수도 있지만,
-        // 일단은 멈출 때마다 갱신되도록 구현합니다.
-        loadNearbyPins(newLocation)
+        val lastLocation = lastRequestedLocation
+        if (lastLocation == null) {
+            loadNearbyPins(newLocation)
+            return
+        }
+
+        // 거리를 계산하여 일정 거리(예: 100m) 이상 이동했을 때만 호출
+        val distance = calculateDistance(
+            lastLocation.latitude, lastLocation.longitude,
+            newLocation.latitude, newLocation.longitude
+        )
+
+        if (distance > 100) { // 100미터 이상 이동 시 갱신
+            loadNearbyPins(newLocation)
+        }
     }
 
     // 핵심: 지도 중심(location)과 내 실제 위치(currentUserLocation)를 모두 전송
     private fun loadNearbyPins(mapCenter: GeoLocation) {
+        lastRequestedLocation = mapCenter
         viewModelScope.launch {
             markRepository.getNearbyMarks(
                 geoLocation = mapCenter,
@@ -70,6 +83,12 @@ class HomeViewModel @Inject constructor(
                 _rawPins.value = it
             }
         }
+    }
+
+    private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Float {
+        val results = FloatArray(1)
+        android.location.Location.distanceBetween(lat1, lon1, lat2, lon2, results)
+        return results[0]
     }
 
     fun onClusterClick(cluster: ClusterMark) {
