@@ -18,7 +18,7 @@ class RecommendationRepositoryImpl @Inject constructor(
             val token = authRepository.getSpotifyAccessToken()
 
             // 🚨 로그를 찍어서 토큰이 정말 있는지 확인하세요!
-            android.util.Log.d("SoundMark_Debug", "Spotify Token from Prefs: $token")
+            android.util.Log.d("SoundMark_Debug", "Spotify Token f rom Prefs: $token")
 
             if (token.isNullOrEmpty()) {
                 throw IllegalStateException("Spotify 토큰이 비어있습니다!")
